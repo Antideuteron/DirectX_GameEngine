@@ -29,8 +29,8 @@ void Mesh::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsComm
 
   if (m_vertexCount && indexCount)
   {
-    CreateIndexBuffer(device, commandList, indexList, indexCount);
     CreateVertexBuffer(device, commandList, vertexList, m_vertexCount);
+    CreateIndexBuffer(device, commandList, indexList, indexCount);
     LoadTexture(device, commandList);
   }
 

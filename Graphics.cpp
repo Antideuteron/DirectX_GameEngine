@@ -5,6 +5,7 @@
 #include "Keyboard.hpp"
 
 #include "DeviceManager.h"
+#include "LevelRenderer.h"
 #include "ImageRenderer.h"
 
 bool Graphics::Init(HWND hwnd, int width, int height)
@@ -22,7 +23,7 @@ bool Graphics::Init(HWND hwnd, int width, int height)
   if (!DeviceManager::CreateSwapChain(hwnd, m_factory, m_commandQueue, width, height, m_swapChain, m_frameIndex)) return false;
   if (!DeviceManager::CreateRenderTargets(m_device, m_swapChain, m_renderTargets.data(), m_rtvHeap, m_rtvDescriptorSize)) return false;
 
-  m_renderer = new ImageRenderer();
+  m_renderer = new LevelRenderer();
 
   Camera::Init(width, height);
 

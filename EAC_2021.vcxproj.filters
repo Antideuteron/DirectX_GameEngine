@@ -72,6 +72,15 @@
     <ClInclude Include="Mesh.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="LevelRenderer.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelLoader.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -126,6 +135,15 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelRenderer.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelLoader.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

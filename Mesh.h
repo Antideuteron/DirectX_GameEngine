@@ -13,6 +13,9 @@ public:
   void PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_VIRTUAL_ADDRESS cbvAddress);
   void Release();
 
+  inline const std::string& ObjectFileName(void) const noexcept { return m_filename; }
+  inline const std::wstring& TextureFileName(void) const noexcept { return m_texturename; }
+
 private:
   static std::map<std::string, Mesh*> cache;
 
@@ -42,4 +45,5 @@ private:
   virtual bool CreateIndexBuffer(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList, DWORD*, int);
   virtual bool CreateVertexBuffer(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList, Vertex* iList, int vertexBufferSize);
   virtual bool LoadTexture(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList);
+
 };

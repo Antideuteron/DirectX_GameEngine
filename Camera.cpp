@@ -23,9 +23,9 @@ void Camera::Update()
 	static const XMVECTOR forward = { 0.0f, 0.0f, 1.0f };
 	static float speed = 0.025f;
 
-	const auto& [x, y] = Mouse::CursorMovement();
+	const auto& cm = Mouse::CursorMovement();
 
-	Rotate(x, y);
+	Rotate(cm.first, cm.second);
 
 	// TODO Fix Seitwärtsbewegung 
 
