@@ -54,7 +54,7 @@ void Mesh::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, D
   commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
   commandList->IASetIndexBuffer(&m_indexBufferView);
 
-  commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+  commandList->DrawIndexedInstanced(m_vertexCount, 1, 0, 0, 0);
 }
 
 void Mesh::Release()
