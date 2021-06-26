@@ -17,34 +17,31 @@ bool Graphics::Init(HWND hwnd, int width, int height)
     m_resize = true;
   }
 
-  if (!m_loaded)
-  {
-    if (!DeviceManager::CreateDevice(m_device, m_factory)) return false;
-    if (!DeviceManager::CreateComandQueue(m_device, m_commandQueue, m_commandAllocator, m_commandList, m_fence, m_fenceEvent, m_fenceValue)) return false;
-    if (!DeviceManager::CreateSwapChain(hwnd, m_factory, m_commandQueue, width, height, m_swapChain, m_frameIndex)) return false;
-    if (!DeviceManager::CreateRenderTargets(m_device, m_swapChain, m_renderTargets.data(), m_rtvHeap, m_rtvDescriptorSize)) return false;
+  if (!DeviceManager::CreateDevice(m_device, m_factory)) return false;
+  if (!DeviceManager::CreateComandQueue(m_device, m_commandQueue, m_commandAllocator, m_commandList, m_fence, m_fenceEvent, m_fenceValue)) return false;
+  if (!DeviceManager::CreateSwapChain(hwnd, m_factory, m_commandQueue, width, height, m_swapChain, m_frameIndex)) return false;
+  if (!DeviceManager::CreateRenderTargets(m_device, m_swapChain, m_renderTargets.data(), m_rtvHeap, m_rtvDescriptorSize)) return false;
 
-    m_renderer = new ImageRenderer();
+  m_renderer = new ImageRenderer();
 
-    Camera::Init(width, height);
+  Camera::Init(width, height);
 
-    if (!m_renderer->CreatePipelineState(m_device, width, height)) return false;
-    if (!m_renderer->LoadResources(m_device, m_commandList, m_commandAllocator, width, height)) return false;
+  if (!m_renderer->CreatePipelineState(m_device, width, height)) return false;
+  if (!m_renderer->LoadResources(m_device, m_commandList, m_commandAllocator, width, height)) return false;
 
-    ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+  ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
 
-    m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+  m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
-    const UINT64 fence = m_fenceValue;
+  const UINT64 fence = m_fenceValue;
 
-    if (FAILED(m_commandQueue->Signal(m_fence.Get(), fence))) return false;
-    m_fenceValue++;
+  if (FAILED(m_commandQueue->Signal(m_fence.Get(), fence))) return false;
+  m_fenceValue++;
 
-    if (!Sync()) return false;
+  if (!Sync()) return false;
 
-    m_loaded = true;
-    m_resize = false;
-  }
+  m_loaded = true;
+  m_resize = false;
 
   return true;
 }
@@ -149,7 +146,8 @@ LRESULT Graphics::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     unsigned int scancode = (lParam >> 16) & 0xff;
     unsigned int extended = (lParam >> 24) & 0x1;
 
-    if (extended) {
+    if (extended)
+    {
       if (scancode != 0x45)
       {
         scancode |= 0xE000;
@@ -157,10 +155,12 @@ LRESULT Graphics::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     else
     {
-      if (scancode == 0x45) {
+      if (scancode == 0x45)
+      {
         scancode = 0xE11D45;
       }
-      else if (scancode == 0x54) {
+      else if (scancode == 0x54)
+      {
         scancode = 0xE037;
       }
     }
@@ -175,7 +175,8 @@ LRESULT Graphics::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     unsigned int scancode = (lParam >> 16) & 0xff;
     unsigned int extended = (lParam >> 24) & 0x1;
 
-    if (extended) {
+    if (extended)
+    {
       if (scancode != 0x45)
       {
         scancode |= 0xE000;

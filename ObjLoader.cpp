@@ -101,6 +101,7 @@ void ObjLoader::Load(
 		}
 		else if (comps[0] == "vt")
 		{
+			// TODO y-Achse drehen maybe?
 			texCoords.emplace_back(strtof(comps[1].c_str(), nullptr), strtof(comps[2].c_str(), nullptr));
 		}
 		else if (comps[0] == "f")
@@ -112,15 +113,24 @@ void ObjLoader::Load(
 	}
 
 	vcount = (int)vertexMap.size();
-	outVertices = (Vertex*)malloc(sizeof(Vertex) * vcount);
-	
+	outVertices = new Vertex[vcount];
+
 	for (size_t i = 0; i < vertexMap.size(); ++i)
 	{
 		outVertices[i] = std::move(vertexMap[i].second);
 	}
 
 	icount = (int)indices.size();
-	outIndices = (DWORD*)malloc(sizeof(DWORD) * icount);
+	outIndices = new DWORD[icount];
 
 	memcpy(outIndices, indices.data(), sizeof(DWORD) * icount);
+
+#ifdef _DEBUG
+	for (int i = 0; i < vcount; i++) {
+		Log::Info(std::to_string(outVertices[i].Position.x) + "/" + std::to_string(outVertices[i].Position.y) + "/" + std::to_string(outVertices[i].Position.z) + "  texcoord: " + "/" + std::to_string(outVertices[i].TexCoord.x) + "/" + std::to_string(outVertices[i].TexCoord.y));
+	}
+	for (int i = 0; i < icount; i++) {
+		Log::Info(std::to_string(outIndices[i]));
+	}
+#endif
 }

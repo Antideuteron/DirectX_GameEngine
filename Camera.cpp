@@ -20,18 +20,24 @@ bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 
 void Camera::Update()
 {
+	static const XMVECTOR forward = { 0.0f, 0.0f, 1.0f };
 	static float speed = 0.025f;
 
 	const auto& [x, y] = Mouse::CursorMovement();
 
 	Rotate(x, y);
 
+	// TODO Fix Seitwärtsbewegung 
+
 	const auto rot = XMLoadFloat4(&m_rotation);
+	const auto noX = XMVECTOR{ m_rotation.x, 0.0f, m_rotation.z, m_rotation.w };
 	const auto side = XMVector3Cross(rot, XMLoadFloat4(&m_up));
 
-	if (Keyboard::IsPressed(Scancode::sc_w)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) + speed * rot);
+	const auto direction = XMVector3Rotate(forward, noX);
+
+	if (Keyboard::IsPressed(Scancode::sc_w)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) + speed * direction);
 	if (Keyboard::IsPressed(Scancode::sc_a)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) + speed * side);
-	if (Keyboard::IsPressed(Scancode::sc_s)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) - speed * rot);
+	if (Keyboard::IsPressed(Scancode::sc_s)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) - speed * direction);
 	if (Keyboard::IsPressed(Scancode::sc_d)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) - speed * side);
 
 	const auto	pos = XMLoadFloat4(&m_position);

@@ -85,7 +85,7 @@ void Display::SwitchDisplayMode(void) noexcept
     );
   }
 
-  std::string buf = "{" + std::to_string(Width()) + "|" + std::to_string(Height()) + "}";
+  std::string buf = "New Window Size: (" + std::to_string(Width()) + "|" + std::to_string(Height()) + ")";
 
   Log::Info(buf);
 }
