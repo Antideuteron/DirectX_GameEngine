@@ -7,6 +7,7 @@ class Mesh
 {
 public:
   static bool GetMesh(std::string object, std::string texture, Mesh*& mesh);
+  ~Mesh(void) noexcept = default;
 
   void LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList);
   void Update(int frameIndex);
@@ -16,11 +17,18 @@ public:
   inline const std::string& ObjectFileName(void) const noexcept { return m_filename; }
   inline const std::wstring& TextureFileName(void) const noexcept { return m_texturename; }
 
-private:
-  static std::map<std::string, Mesh*> cache;
+  virtual bool CreateIndexBuffer(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList, DWORD*, int);
+  virtual bool CreateVertexBuffer(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList, Vertex* iList, int vertexBufferSize);
+  virtual bool LoadTexture(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList);
 
+  const int VertexCount(void) const noexcept { return m_vertexCount; }
+  const Vertex* Verticies(void) const noexcept { return m_Verticies; }
+
+private:
+  static std::map<std::string, Mesh> cache;
+
+  Mesh(void) noexcept = default;
   Mesh(std::string filename, std::string texture) : m_filename(filename), m_texturename(texture.begin(), texture.end()) {}
-  ~Mesh(void) noexcept = default;
 
   bool loaded = false;
   int instances = 0;
@@ -39,11 +47,8 @@ private:
   ComPtr<ID3D12DescriptorHeap> m_shaderResourceViewDescriptorHeap;
 
   int m_vertexCount = 0;
+  Vertex* m_Verticies;
   std::string m_filename;
   std::wstring m_texturename;
-
-  virtual bool CreateIndexBuffer(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList, DWORD*, int);
-  virtual bool CreateVertexBuffer(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList, Vertex* iList, int vertexBufferSize);
-  virtual bool LoadTexture(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList);
 
 };

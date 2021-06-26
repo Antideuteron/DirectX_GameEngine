@@ -12,20 +12,25 @@ Model::Model(const std::string& object, const std::string& texture, XMFLOAT3 pos
 
 void Model::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList)
 {
-  int indexCount;
-  int vertexCount;
-  DWORD* indexList;
-  Vertex* vertexList;
+  m_mesh->LoadResources(device, commandList);
 
-  ObjLoader::Load(m_mesh->ObjectFileName(), vertexList, vertexCount, indexList, indexCount);
+  // TODO BoundingVolume: Mit m_mesh->Verticies() kann auf die Verticies zugegriffen werden, m_mesh->
+}
 
-  if (vertexCount && indexCount)
-  {
-    m_mesh->CreateVertexBuffer(device, commandList, vertexList, vertexCount);
-    m_mesh->CreateIndexBuffer(device, commandList, indexList, indexCount);
-    m_mesh->LoadTexture(device, commandList);
-  }
+void Model::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, UINT8* cbAddress, D3D12_GPU_VIRTUAL_ADDRESS cbvAddress)
+{
+  XMVECTOR scale = XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f };
+  XMVECTOR origin = XMVECTOR{ 0.0f, 0.0f, 0.0f, 1.0f };
 
-  delete[] indexList;
-  delete[] vertexList;
+  XMVECTOR vrot = XMLoadFloat4(&m_rotation);
+  XMVECTOR vpos = XMLoadFloat3(&m_position);
+
+  XMStoreFloat4x4(&m_constantBuffer.wvpMat, XMMatrixAffineTransformation(scale, origin, vrot, vpos));
+
+  m_mesh->PopulateCommandList(commandList, cbvAddress);
+}
+
+void Model::Release()
+{
+  if (m_mesh) m_mesh->Release();
 }

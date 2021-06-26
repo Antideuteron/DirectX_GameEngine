@@ -54,7 +54,7 @@ bool LevelRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width,
   return true;
 }
 
-bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>&, ComPtr<ID3D12GraphicsCommandList>&, ComPtr<ID3D12CommandAllocator>& commandAllocator, int, int)
+bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList, ComPtr<ID3D12CommandAllocator>& commandAllocator, int width, int height)
 {
   static const XMFLOAT4 rotation = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -81,7 +81,12 @@ bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>&, ComPtr<ID3D12GraphicsCo
     }
 
     position.x -= 2.0f;
+    position.z = 3.0f;
   }
+
+  commandList->Reset(commandAllocator.Get(), m_pipelineState.Get());
+  for (auto& model : m_models) model->LoadResources(device, commandList);
+  commandList->Close();
 
   // Depth/Stencil Buffer erstellen
   // Laden des Shaders
@@ -105,15 +110,15 @@ bool LevelRenderer::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& comma
   commandList->ResourceBarrier(1, &transe);
 
   // Record commands.
-  auto dsvHandle = m_depthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-  commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+  //auto dsvHandle = m_depthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+  //commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
   const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
   //const float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
   commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-  commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+  //commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-  // TODO PopulateCommandList jedes Models!!!!
+  for (auto& model : m_models) model->PopulateCommandList(commandList, nullptr, 0);
 
   // Indicate that the back buffer will now be used to present.
   commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

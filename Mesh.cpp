@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-std::map<std::string, Mesh*> Mesh::cache;
+std::map<std::string, Mesh> Mesh::cache;
 
 bool Mesh::GetMesh(std::string object, std::string texture, Mesh*& mesh)
 {
@@ -8,34 +8,36 @@ bool Mesh::GetMesh(std::string object, std::string texture, Mesh*& mesh)
 
   if (it != cache.end())
   {
-    mesh = it->second;
+    mesh = &it->second;
 
     return true;
   }
 
+  const auto entry = cache.emplace(object, Mesh());
   mesh = new Mesh(object, texture);
-  cache.insert({ object, mesh });
 
   return true;
 }
 
 void Mesh::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList)
 {
+  if (loaded) return;
+
   int indexCount;
   DWORD* indexList;
-  Vertex* vertexList;
 
-  ObjLoader::Load(m_filename, vertexList, m_vertexCount, indexList, indexCount);
+  ObjLoader::Load(m_filename, m_Verticies, m_vertexCount, indexList, indexCount);
 
   if (m_vertexCount && indexCount)
   {
-    CreateVertexBuffer(device, commandList, vertexList, m_vertexCount);
+    CreateVertexBuffer(device, commandList, m_Verticies, m_vertexCount);
     CreateIndexBuffer(device, commandList, indexList, indexCount);
     LoadTexture(device, commandList);
   }
 
   delete[] indexList;
-  delete[] vertexList;
+
+  loaded = true;
 }
 
 void Mesh::Update(int frameIndex)
@@ -59,11 +61,25 @@ void Mesh::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, D
 
 void Mesh::Release()
 {
+  --instances;
+
+  if (instances > 0) return;
+
   m_indexBuffer.Reset();
   m_indexBufferUpload.Reset();
   m_vertexBuffer.Reset();
   m_vertexBufferUpload.Reset();
   m_textureBuffer.Reset();
+
+  for (auto it = cache.begin(); it != cache.end(); ++it)
+  {
+    if (&it->second == this)
+    {
+      cache.erase(it);
+
+      return;
+    }
+  }
 }
 
 bool Mesh::CreateIndexBuffer(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList, DWORD* indexList, int indexBufferSize)

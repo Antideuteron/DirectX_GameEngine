@@ -1,9 +1,7 @@
 #pragma once
 
 #include "DepthQuadRenderer.h"
-//#include "Model.h"
-
-#define Model void
+#include "Model.h"
 
 class LevelRenderer : public DepthQuadRenderer
 {
