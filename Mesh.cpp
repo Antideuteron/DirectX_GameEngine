@@ -13,8 +13,8 @@ bool Mesh::GetMesh(std::string object, std::string texture, Mesh*& mesh)
     return true;
   }
 
-  const auto entry = cache.emplace(object, Mesh());
   mesh = new Mesh(object, texture);
+  const auto entry = cache.insert({ object, *mesh });
 
   return true;
 }
@@ -23,15 +23,14 @@ void Mesh::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsComm
 {
   if (loaded) return;
 
-  int indexCount;
   DWORD* indexList;
 
-  ObjLoader::Load(m_filename, m_Verticies, m_vertexCount, indexList, indexCount);
+  ObjLoader::Load(m_filename, m_Verticies, m_vertexCount, indexList, m_indexCount);
 
-  if (m_vertexCount && indexCount)
+  if (m_vertexCount && m_indexCount)
   {
-    CreateVertexBuffer(device, commandList, m_Verticies, m_vertexCount);
-    CreateIndexBuffer(device, commandList, indexList, indexCount);
+    CreateVertexBuffer(device, commandList, m_Verticies, m_vertexCount * sizeof(Vertex));
+    CreateIndexBuffer(device, commandList, indexList, m_indexCount * sizeof(DWORD));
     LoadTexture(device, commandList);
   }
 
@@ -56,7 +55,7 @@ void Mesh::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, D
   commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
   commandList->IASetIndexBuffer(&m_indexBufferView);
 
-  commandList->DrawIndexedInstanced(m_vertexCount, 1, 0, 0, 0);
+  commandList->DrawIndexedInstanced(m_indexCount, 1, 0, 0, 0);
 }
 
 void Mesh::Release()

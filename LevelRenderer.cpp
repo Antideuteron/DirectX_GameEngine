@@ -85,11 +85,10 @@ bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Gra
   }
 
   commandList->Reset(commandAllocator.Get(), m_pipelineState.Get());
+  if (!CreateDepthStencilBuffer(device, commandList, width, height)) return false;
+
   for (auto& model : m_models) model->LoadResources(device, commandList);
   commandList->Close();
-
-  // Depth/Stencil Buffer erstellen
-  // Laden des Shaders
 
   return true;
 }
@@ -110,13 +109,13 @@ bool LevelRenderer::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& comma
   commandList->ResourceBarrier(1, &transe);
 
   // Record commands.
-  //auto dsvHandle = m_depthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-  //commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+  auto dsvHandle = m_depthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+  commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
   const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
   //const float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
   commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-  //commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+  commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
   for (auto& model : m_models) model->PopulateCommandList(commandList, nullptr, 0);
 

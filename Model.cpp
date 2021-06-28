@@ -14,7 +14,13 @@ void Model::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCom
 {
   m_mesh->LoadResources(device, commandList);
 
-  // TODO BoundingVolume: Mit m_mesh->Verticies() kann auf die Verticies zugegriffen werden, m_mesh->
+  std::vector<Vertex> vertices;
+
+  vertices.resize(m_mesh->VertexCount());
+  memcpy(vertices.data(), m_mesh->Vertices(), sizeof(Vertex) * m_mesh->VertexCount());
+
+  m_BoundingVolume = BoundingVolume(vertices);
+  m_BoundingVolume.Update(&m_position, &m_rotation);
 }
 
 void Model::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, UINT8* cbAddress, D3D12_GPU_VIRTUAL_ADDRESS cbvAddress)
@@ -26,6 +32,8 @@ void Model::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, 
   XMVECTOR vpos = XMLoadFloat3(&m_position);
 
   XMStoreFloat4x4(&m_constantBuffer.wvpMat, XMMatrixAffineTransformation(scale, origin, vrot, vpos));
+
+  //memcpy(cbAddress, &m_constantBuffer, sizeof(ConstantBuffer));
 
   m_mesh->PopulateCommandList(commandList, cbvAddress);
 }

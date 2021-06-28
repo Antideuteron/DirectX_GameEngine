@@ -176,6 +176,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="Keyboard.hpp" />
     <ClInclude Include="LevelLoader.h" />
@@ -200,6 +201,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BoundingVolume.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="LevelLoader.cpp" />

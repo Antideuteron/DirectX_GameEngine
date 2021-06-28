@@ -22,7 +22,7 @@ public:
   virtual bool LoadTexture(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList);
 
   const int VertexCount(void) const noexcept { return m_vertexCount; }
-  const Vertex* Verticies(void) const noexcept { return m_Verticies; }
+  const Vertex* Vertices(void) const noexcept { return m_Verticies; }
 
 private:
   static std::map<std::string, Mesh> cache;
@@ -46,6 +46,7 @@ private:
 
   ComPtr<ID3D12DescriptorHeap> m_shaderResourceViewDescriptorHeap;
 
+  int m_indexCount = 0;
   int m_vertexCount = 0;
   Vertex* m_Verticies;
   std::string m_filename;
