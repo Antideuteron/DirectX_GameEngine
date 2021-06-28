@@ -25,11 +25,10 @@ void Model::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCom
 
 void Model::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, UINT8* cbAddress, D3D12_GPU_VIRTUAL_ADDRESS cbvAddress)
 {
-  XMVECTOR scale = XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f };
-  XMVECTOR origin = XMVECTOR{ 0.0f, 0.0f, 0.0f, 1.0f };
-
-  XMVECTOR vrot = XMLoadFloat4(&m_rotation);
-  XMVECTOR vpos = XMLoadFloat3(&m_position);
+  static const auto scale = XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f };  // this static local variables reduce
+  static const auto origin = XMVECTOR{ 0.0f, 0.0f, 0.0f, 1.0f }; // each stackframe by 16 bytes
+  const auto vrot = XMLoadFloat4(&m_rotation);
+  const auto vpos = XMLoadFloat3(&m_position);
 
   XMStoreFloat4x4(&m_constantBuffer.wvpMat, XMMatrixAffineTransformation(scale, origin, vrot, vpos));
 

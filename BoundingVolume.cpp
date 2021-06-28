@@ -133,9 +133,7 @@ XMFLOAT3 BoundingVolume::insectCheck(const Sphere& other) noexcept
 		// a possible plan could be:
 
 		// create a vector with half intersection distance (halfDist, 0.0f, halfDist)
-		// return it
-		
-		return { distance * 0.5f, 0.0f, distance * 0.5f };
+		return { distance * 0.5f, 0.0f, distance * 0.5f }; // return it
 
 		// resolution code in model update:
 		// for every model

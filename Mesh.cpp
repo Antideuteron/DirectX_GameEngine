@@ -16,7 +16,7 @@ bool Mesh::GetMesh(std::string object, std::string texture, Mesh*& mesh)
   mesh = new Mesh(object, texture);
   const auto entry = cache.insert({ object, *mesh });
 
-  return true;
+  return entry.second;
 }
 
 void Mesh::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList)
@@ -112,11 +112,13 @@ bool Mesh::CreateIndexBuffer(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Graphics
   }
 
   D3D12_SUBRESOURCE_DATA subresourceData = {};
+
   subresourceData.pData = (void*)indexList;
   subresourceData.RowPitch = indexBufferSize;
   subresourceData.SlicePitch = subresourceData.RowPitch;
 
   UpdateSubresources(commandList.Get(), m_indexBuffer.Get(), m_indexBufferUpload.Get(), 0, 0, 1, &subresourceData);
+
   commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_indexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
 
   m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
@@ -159,11 +161,13 @@ bool Mesh::CreateVertexBuffer(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Graphic
   }
 
   D3D12_SUBRESOURCE_DATA subresourceData = {};
+
   subresourceData.pData = (void*)vertexList;
   subresourceData.RowPitch = vertexBufferSize;
   subresourceData.SlicePitch = subresourceData.RowPitch;
 
   UpdateSubresources(commandList.Get(), m_vertexBuffer.Get(), m_vertexBufferUpload.Get(), 0, 0, 1, &subresourceData);
+
   commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_vertexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER));
 
   m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
@@ -181,7 +185,8 @@ bool Mesh::LoadTexture(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsComman
   D3D12_RESOURCE_DESC textureDesc;
   int imageBytesPerRow;
   BYTE* imageData;
-  auto imageSize = TextureLoader::LoadImageDataFromFile(
+
+  const auto imageSize = TextureLoader::LoadImageDataFromFile(
     &imageData,
     textureDesc,
     m_texturename.c_str(),
@@ -215,6 +220,7 @@ bool Mesh::LoadTexture(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsComman
   m_textureBuffer->SetName(L"Texture Buffer Resource Heap");
 
   UINT64 textureUploadBufferSize;
+
   // this function gets the size an upload buffer needs to be to upload a texture to the gpu.
   // each row must be 256 byte aligned except for the last row, which can just be the size in bytes of the row
   // eg. textureUploadBufferSize = ((((width * numBytesPerPixel) + 255) & ~255) * (height - 1)) + (width * numBytesPerPixel);
@@ -232,14 +238,17 @@ bool Mesh::LoadTexture(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsComman
         nullptr,
         IID_PPV_ARGS(&m_textureBufferUploadHeap))
     )
-    )
+  )
   {
+    Log::Info(L"Failed to create committed resource texture upload heap");
+
     return false;
   }
   m_textureBufferUploadHeap->SetName(L"Texture Buffer Upload Resource Heap");
 
   // store vertex buffer in upload heap
   D3D12_SUBRESOURCE_DATA textureData = {};
+
   textureData.pData = &imageData[0]; // pointer to our image data
   textureData.RowPitch = imageBytesPerRow; // size of all our triangle vertex data
   textureData.SlicePitch = imageBytesPerRow * textureDesc.Height; // also the size of our triangle vertex data
@@ -258,21 +267,26 @@ bool Mesh::LoadTexture(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsComman
 
   // create the descriptor heap that will store our srv
   D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+
   heapDesc.NumDescriptors = 1;
   heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
   heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
   if (FAILED(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_shaderResourceViewDescriptorHeap.GetAddressOf()))))
   {
+    m_textureBufferUploadHeap->SetName(L"Failed to create texture descriptor heap");
+
     return false;
   }
 
   // now we create a shader resource view (descriptor that points to the texture and describes it)
   D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+
   srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
   srvDesc.Format = textureDesc.Format;
   srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
   srvDesc.Texture2D.MipLevels = 1;
+
   device->CreateShaderResourceView(m_textureBuffer.Get(), &srvDesc, m_shaderResourceViewDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
   // we are done with image data now that we've uploaded it to the gpu, so free it up
