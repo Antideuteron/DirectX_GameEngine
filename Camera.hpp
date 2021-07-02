@@ -2,6 +2,10 @@
 
 #include "Renderer.h"
 
+/*
+  TODO Camera Klasse neu aufsetzen!!!
+*/
+
 class Camera
 {
 public:

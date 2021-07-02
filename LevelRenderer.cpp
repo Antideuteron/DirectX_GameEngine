@@ -8,7 +8,7 @@ bool LevelRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width,
   m_scissorRect = CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX);
 
   if (!CreateRootSignature(device)) return false;
-  
+
   D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
   heapDesc.NumDescriptors = 1;
   heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -133,7 +133,7 @@ bool LevelRenderer::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& comma
   commandList->ResourceBarrier(1, &transe2);
 
   if (FAILED(commandList->Close())) return false;
-  
+
   return true;
 }
 

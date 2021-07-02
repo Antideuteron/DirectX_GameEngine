@@ -9,7 +9,7 @@ constexpr XMFLOAT4 left = { -1.0f,  0.0f, 0.0f, 0.0f };
 
 XMFLOAT4 Camera::m_target		= { 0.0f,  0.0f,   1.0f, 1.0f };
 XMFLOAT4 Camera::m_position	= { 0.0f,  1.0f, -10.0f, 1.0f };
-XMFLOAT4 Camera::m_rotation	= { 0.0f,  0.0f,   1.0f, 0.0f };
+XMFLOAT4 Camera::m_rotation	= { 0.0f,  0.0f,   0.0f, 0.0f };
 
 static float aspect = 0.0f;
 

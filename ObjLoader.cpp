@@ -1,5 +1,7 @@
 #include "ObjLoader.h"
 
+// TODO Neuerstellen des OBJLoaders
+
 static vector<std::string> split(const std::string& str, const std::string& delim)
 {
 	vector<std::string> tokens;
@@ -102,7 +104,7 @@ void ObjLoader2::Load(
 		else if (comps[0] == "vt")
 		{
 			// TODO y-Achse drehen maybe?
-			texCoords.emplace_back(strtof(comps[1].c_str(), nullptr), strtof(comps[2].c_str(), nullptr));
+			texCoords.emplace_back(strtof(comps[1].c_str(), nullptr), 1.0f - strtof(comps[2].c_str(), nullptr));
 		}
 		else if (comps[0] == "f")
 		{
