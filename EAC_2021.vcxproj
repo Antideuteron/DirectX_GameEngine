@@ -193,6 +193,7 @@
     <ClInclude Include="Display.hpp" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ImageRenderer.h" />
+    <ClInclude Include="ObjLoader2.h" />
     <ClInclude Include="QuadRenderer.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="TextureLoader.h" />
@@ -218,6 +219,7 @@
     <ClCompile Include="Display.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ImageRenderer.cpp" />
+    <ClCompile Include="ObjLoader2.cpp" />
     <ClCompile Include="QuadRenderer.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="TextureLoader.cpp" />

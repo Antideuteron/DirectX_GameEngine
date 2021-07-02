@@ -2,6 +2,10 @@
 
 #include "Renderer.h"
 
+/*
+  TODO Camera Klasse neu aufsetzen!!!
+*/
+
 class Camera
 {
 public:
@@ -20,7 +24,6 @@ private:
 
   static XMFLOAT4 m_position;
   static XMFLOAT4 m_target;
-  static XMFLOAT4 m_up;
 
   static XMFLOAT4 m_rotation;
 };

@@ -1,5 +1,7 @@
 #include "ObjLoader.h"
 
+// TODO Neuerstellen des OBJLoaders
+
 static vector<std::string> split(const std::string& str, const std::string& delim)
 {
 	vector<std::string> tokens;
@@ -74,7 +76,7 @@ static void addToMap(std::vector<std::pair<std::string, Vertex>>& map, const std
 	map.push_back({ index, v });
 }
 
-void ObjLoader::Load(
+void ObjLoader2::Load(
 	std::string filename,
 	Vertex*& outVertices, int& vcount,
 	DWORD*& outIndices, int& icount
@@ -102,7 +104,7 @@ void ObjLoader::Load(
 		else if (comps[0] == "vt")
 		{
 			// TODO y-Achse drehen maybe?
-			texCoords.emplace_back(strtof(comps[1].c_str(), nullptr), strtof(comps[2].c_str(), nullptr));
+			texCoords.emplace_back(strtof(comps[1].c_str(), nullptr), 1.0f - strtof(comps[2].c_str(), nullptr));
 		}
 		else if (comps[0] == "f")
 		{
@@ -125,7 +127,7 @@ void ObjLoader::Load(
 
 	memcpy(outIndices, indices.data(), sizeof(DWORD) * icount);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && 0
 	for (int i = 0; i < vcount; i++) {
 		Log::Info(std::to_string(outVertices[i].Position.x) + "/" + std::to_string(outVertices[i].Position.y) + "/" + std::to_string(outVertices[i].Position.z) + "  texcoord: " + "/" + std::to_string(outVertices[i].TexCoord.x) + "/" + std::to_string(outVertices[i].TexCoord.y));
 	}

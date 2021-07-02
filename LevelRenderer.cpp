@@ -9,6 +9,15 @@ bool LevelRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width,
 
   if (!CreateRootSignature(device)) return false;
 
+  D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+  heapDesc.NumDescriptors = 1;
+  heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+  heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+  if (FAILED(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mainDescriptorHeap))))
+  {
+    return false;
+  }
+
   ComPtr<ID3DBlob> vertexShader;
   ComPtr<ID3DBlob> pixelShader;
 
@@ -93,48 +102,49 @@ bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Gra
   return true;
 }
 
-bool LevelRenderer::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, ComPtr<ID3D12CommandAllocator>& commandAllocator, CD3DX12_CPU_DESCRIPTOR_HANDLE& rtvHandle, ComPtr<ID3D12Resource>& renderTarget, int)
+bool LevelRenderer::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, ComPtr<ID3D12CommandAllocator>& commandAllocator, CD3DX12_CPU_DESCRIPTOR_HANDLE& rtvHandle, ComPtr<ID3D12Resource>& renderTarget, int frameIndex)
 {
-  if (FAILED(commandAllocator->Reset())) { Log::Error(L"commandAllocator::Reset failed"); return false; }
+  if (FAILED(commandAllocator->Reset())) return false;
+  if (FAILED(commandList->Reset(commandAllocator.Get(), nullptr))) return false;
 
-  commandList->Reset(commandAllocator.Get(), m_pipelineState.Get());
-
+  commandList->SetPipelineState(m_pipelineState.Get());
   commandList->SetGraphicsRootSignature(m_rootSignature.Get());
   commandList->RSSetViewports(1, &m_viewport);
   commandList->RSSetScissorRects(1, &m_scissorRect);
 
-  // Indicate that the back buffer will be used as a render target.
-
   const auto transe = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
   commandList->ResourceBarrier(1, &transe);
 
-  // Record commands.
-  auto dsvHandle = m_depthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+  const auto dsvHandle = m_depthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
   commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
-  const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-  //const float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+  ID3D12DescriptorHeap* descriptorHeaps[] = { mainDescriptorHeap.Get() };
+  commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+  // set the descriptor table to the descriptor heap (parameter 1, as constant buffer root descriptor is parameter index 0)
+  commandList->SetGraphicsRootDescriptorTable(1, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+  const float clearColor[] = { 0.08f, 0.08f, 0.08f, 1.0f };
   commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
   commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
   for (auto& model : m_models) model->PopulateCommandList(commandList, nullptr, 0);
 
-  // Indicate that the back buffer will now be used to present.
-  commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+  const auto transe2 = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+  commandList->ResourceBarrier(1, &transe2);
 
-  if (FAILED(commandList->Close())) { Log::Error(L"commandList::Close failed"); return false; }
+  if (FAILED(commandList->Close())) return false;
 
   return true;
 }
 
 void LevelRenderer::Update(int frameIndex)
 {
-  // Update für jedes Model
+  for (auto& model : m_models) model->Update(frameIndex);
 }
 
 void LevelRenderer::Release()
 {
-  // Release für jedes Model
+  for (auto& model : m_models) model->Release();
 }
 
 bool LevelRenderer::CreateRootSignature(ComPtr<ID3D12Device>& device)

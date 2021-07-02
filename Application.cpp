@@ -4,6 +4,9 @@
 #include "Keyboard.hpp"
 #include "Display.hpp"
 
+static float timeElapsed = 0.0f;
+static uint32_t frameCounter = 0;
+
 static bool s_Initialized = false;
 static HINSTANCE s_Instance = nullptr;
 static bool isRunning = false;
@@ -12,10 +15,15 @@ static Graphics* s_Graphics = nullptr;
 
 static Display* display = nullptr;
 
+static void keyL(void) { Log::Info((std::wstringstream() << frameCounter << " fps" << '\n').str()); }
 static void keyH(void) { Log::Info("Hallo Welt"); }
 static void keyX(void) { Log::Error("Eine MessageBox"); }
-static void keyEsc(void) { if (display) display->RequestStop(); }
+static void keyEsc(void) { if (display) Application::Stop(); }
 static void keyF11(void) { if (display) display->SwitchDisplayMode(); }
+
+inline double clockToMilliseconds(const clock_t ticks) noexcept {
+  return (ticks / (double)CLOCKS_PER_SEC) * 1000.0;
+}
 
 bool Application::Initialize(HINSTANCE instance) noexcept
 {
@@ -57,10 +65,13 @@ void Application::Finish(void) noexcept
 
 void Application::Start(void) noexcept
 {
+  clock_t deltaTime = 0;
+  uint32_t frames = 0;
 	isRunning = true;
 
   while (isRunning)
   {
+    clock_t beginFrame = clock();
     Mouse::Reset();
     Keyboard::Update();
 
@@ -79,11 +90,23 @@ void Application::Start(void) noexcept
     #########################
     */
     if (Keyboard::IsPressed(sc_h)) keyH();
+    if (Keyboard::IsReleased(sc_l)) keyL();
     if (Keyboard::IsReleased(sc_x)) keyX();
     if (Keyboard::IsReleased(sc_f11)) keyF11();
     if (Keyboard::IsReleased(sc_escape)) keyEsc();
 
-    if (!s_Graphics->Render()) return;
+    if (!s_Graphics->Render()) Stop();
+    clock_t endFrame = clock();
+
+    // determine time spend until rendering
+    deltaTime += endFrame - beginFrame;
+
+    ++frames;
+    if (clockToMilliseconds(deltaTime) > 1000.0) { //every second
+      frameCounter = frames;
+      frames = 0;
+      deltaTime -= CLOCKS_PER_SEC;
+    }
   }
 }
 

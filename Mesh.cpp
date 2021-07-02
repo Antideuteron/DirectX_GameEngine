@@ -9,12 +9,15 @@ bool Mesh::GetMesh(std::string object, std::string texture, Mesh*& mesh)
   if (it != cache.end())
   {
     mesh = &it->second;
+    ++mesh->instances;
 
     return true;
   }
 
   mesh = new Mesh(object, texture);
   const auto entry = cache.insert({ object, *mesh });
+
+  mesh->instances = 1;
 
   return entry.second;
 }
@@ -45,11 +48,11 @@ void Mesh::Update(int frameIndex)
 
 void Mesh::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& commandList, D3D12_GPU_VIRTUAL_ADDRESS cbvAddress)
 {
-  //// set the descriptor heap
-  //ID3D12DescriptorHeap* descriptorHeaps[] = { m_shaderResourceViewDescriptorHeap.Get() };
-  //commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-  //// set the descriptor table to the descriptor heap (parameter 1, as constant buffer root descriptor is parameter index 0)
-  //commandList->SetGraphicsRootDescriptorTable(1, m_shaderResourceViewDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+  // set the descriptor heap
+  ID3D12DescriptorHeap* descriptorHeaps[] = { m_shaderResourceViewDescriptorHeap.Get() };
+  commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+  // set the descriptor table to the descriptor heap (parameter 1, as constant buffer root descriptor is parameter index 0)
+  commandList->SetGraphicsRootDescriptorTable(1, m_shaderResourceViewDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
   commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);

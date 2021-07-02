@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ObjLoader.h"
+#include "ObjLoader2.h"
 #include "TextureLoader.h"
 
 class Mesh
