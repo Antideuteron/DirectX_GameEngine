@@ -1,6 +1,6 @@
 #pragma once
 
-class ObjLoader2
+class ObjLoader
 {
 public:
   static void Load(
@@ -12,7 +12,7 @@ public:
   );
 
 private:
-  ObjLoader2(void) noexcept = delete;
-  ~ObjLoader2(void) noexcept = delete;
+  ObjLoader() {};
+  ~ObjLoader() {};
 
 };

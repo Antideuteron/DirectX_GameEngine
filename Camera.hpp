@@ -20,7 +20,6 @@ private:
 
   static XMFLOAT4 m_position;
   static XMFLOAT4 m_target;
-  static XMFLOAT4 m_up;
 
   static XMFLOAT4 m_rotation;
 };

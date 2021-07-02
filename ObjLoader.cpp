@@ -74,7 +74,7 @@ static void addToMap(std::vector<std::pair<std::string, Vertex>>& map, const std
 	map.push_back({ index, v });
 }
 
-void ObjLoader::Load(
+void ObjLoader2::Load(
 	std::string filename,
 	Vertex*& outVertices, int& vcount,
 	DWORD*& outIndices, int& icount
@@ -125,7 +125,7 @@ void ObjLoader::Load(
 
 	memcpy(outIndices, indices.data(), sizeof(DWORD) * icount);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && 0
 	for (int i = 0; i < vcount; i++) {
 		Log::Info(std::to_string(outVertices[i].Position.x) + "/" + std::to_string(outVertices[i].Position.y) + "/" + std::to_string(outVertices[i].Position.z) + "  texcoord: " + "/" + std::to_string(outVertices[i].TexCoord.x) + "/" + std::to_string(outVertices[i].TexCoord.y));
 	}

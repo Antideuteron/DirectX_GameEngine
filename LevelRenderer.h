@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DepthQuadRenderer.h"
+
 #include "Model.h"
 
 class LevelRenderer : public DepthQuadRenderer
@@ -15,9 +16,12 @@ public:
 protected:
   virtual bool CreateRootSignature(ComPtr<ID3D12Device>& device);
 
-  int m_constantBufferAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
-  std::vector<Model*> m_models;
+  const int m_constantBufferAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
 
+  ComPtr<ID3D12DescriptorHeap> mainDescriptorHeap;
+
+  std::vector<Model*> m_models;
   std::vector<std::vector<int>> levelLayout;
+
 };
 
