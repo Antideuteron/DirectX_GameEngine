@@ -18,7 +18,9 @@ void ObjLoader::Load(
 
 	vector<Vertex> vertices;
 	vector<XMFLOAT2> texcoord;
+	vector<XMFLOAT3> weitere;
 	vector<DWORD> indices;
+	uint32_t faces = 0u;
 
 	string line;
 	while (getline(input, line))
@@ -34,7 +36,8 @@ void ObjLoader::Load(
 					end = line.find(' ', start);
 					xyz.push_back(line.substr(start, end - start));
 				}
-				vertices.push_back({ XMFLOAT3(stof(xyz[1]), stof(xyz[2]), stof(xyz[3])), XMFLOAT4(0.502f, 0.729f, 0.141f, 1.0f), XMFLOAT2(0.0f, 0.0f) });
+				//vertices.push_back({ XMFLOAT3(stof(xyz[1]), stof(xyz[2]), stof(xyz[3])), XMFLOAT4(0.502f, 0.729f, 0.141f, 1.0f), XMFLOAT2(0.0f, 0.0f) });
+				weitere.push_back(XMFLOAT3(stof(xyz[1]), stof(xyz[2]), stof(xyz[3])));
 				vcount++;
 			}
 			if (!line.compare(0, 2, "vt")) {
@@ -60,12 +63,30 @@ void ObjLoader::Load(
 					if (end > line.find('/', start)) end = line.find('/', start);
 					i.push_back(line.substr(start, end - start));
 				}
-				indices.push_back(stoi(i[1]) - 1);
-				vertices[stoi(i[1]) - 1].TexCoord = texcoord[stoi(i[2]) - 1];
-				indices.push_back(stoi(i[3]) - 1);
-				vertices[stoi(i[3]) - 1].TexCoord = texcoord[stoi(i[4]) - 1];
-				indices.push_back(stoi(i[5]) - 1);
-				vertices[stoi(i[5]) - 1].TexCoord = texcoord[stoi(i[6]) - 1];
+				indices.push_back(faces++);
+				vertices.push_back(
+					{
+						weitere[stoi(i[1]) - 1],
+						{ 1.0f, 1.0f, 1.0f, 1.0f },
+						texcoord[stoi(i[2]) - 1]
+					}
+				);
+				indices.push_back(faces++);
+				vertices.push_back(
+					{
+						weitere[stoi(i[3]) - 1],
+						{ 1.0f, 1.0f, 1.0f, 1.0f },
+						texcoord[stoi(i[4]) - 1]
+					}
+				);
+				indices.push_back(faces++);
+				vertices.push_back(
+					{
+						weitere[stoi(i[5]) - 1],
+						{ 1.0f, 1.0f, 1.0f, 1.0f },
+						texcoord[stoi(i[6]) - 1]
+					}
+				);
 				icount += 3;
 			}
 		}

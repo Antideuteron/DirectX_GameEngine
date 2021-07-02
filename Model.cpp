@@ -1,7 +1,6 @@
 #include "Model.h"
 
 #include "Camera.hpp"
-#include "ObjLoader2.h"
 
 Model::Model(const std::string& object, const std::string& texture, XMFLOAT3 position, XMFLOAT4 rotation) :
   m_position(position),
