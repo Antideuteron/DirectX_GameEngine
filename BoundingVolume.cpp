@@ -55,39 +55,44 @@ BoundingVolume::BoundingVolume(std::vector<Vertex>& vertices) noexcept
 	//For the sphere Version 2.0 (smaller sphere):
 	{ 
 		// first: determining the center point
-		XMFLOAT3 center = { 0,0,0 };
+		XMVECTOR center = { 0.0f, 0.0f, 0.0f };
 		float n = 0;
 
 		for (const auto vertex : vertices) // Summ up all vertex vectors
 		{
 			n += 1; // Count number of vertices
-			center += vertex.Position;
+			center.m128_f32[0] += vertex.Position.x;
+			center.m128_f32[1] += vertex.Position.y;
+			center.m128_f32[2] += vertex.Position.z;
 		}
 		//Divide by n to find center
-		center[0] = center[0] / n;
-		center[1] = center[1] / n;
-		center[2] = center[2] / n;
+		center.m128_f32[0] = center.m128_f32[0] / n;
+		center.m128_f32[1] = center.m128_f32[1] / n;
+		center.m128_f32[2] = center.m128_f32[2] / n;
 
 		float max_dist = 0;
-		XMFLOAT3 dist = { 0,0,0 };
+		XMVECTOR dist = { 0.0f, 0.0f, 0.0f };
 		for (const auto vertex : vertices) // Calculate maximum distance to centerpoint
 		{
-			dist = center - vertex.Position;
-			float curr_dist = dist[0] * dist[0] + dist[1] * dist[1] + dist[2] * dist[2];
+			dist.m128_f32[0] = center.m128_f32[0] - vertex.Position.x;
+			dist.m128_f32[1] = center.m128_f32[1] - vertex.Position.y;
+			dist.m128_f32[2] = center.m128_f32[2] - vertex.Position.z;
+
+			float curr_dist = dist.m128_f32[0] * dist.m128_f32[0] + dist.m128_f32[1] * dist.m128_f32[1] + dist.m128_f32[2] * dist.m128_f32[2];
 			if (curr_dist > max_dist) {
 				max_dist = curr_dist;
 			}
 
 		}
 
-		m_Sphere.CenterRadius.w = max_dist;
+		m_Sphere.CenterRadius.x = center.m128_f32[0];
+		m_Sphere.CenterRadius.y = center.m128_f32[1];
+		m_Sphere.CenterRadius.z = center.m128_f32[2];
+		m_Sphere.CenterRadius.w = sqrtf(max_dist);
 
 		// setting radius in m_SphereTransformed 'cause it will stay constant
 		m_SphereTransformed.CenterRadius.w = m_Sphere.CenterRadius.w;
 	}
-
-
-
 }
 
 bool BoundingVolume::Intersects(BoundingVolume* other, XMFLOAT3& resolution) noexcept

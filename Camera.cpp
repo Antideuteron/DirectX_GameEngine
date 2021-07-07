@@ -8,7 +8,7 @@ constexpr XMFLOAT4 up		=	{  0.0f, -1.0f, 0.0f, 0.0f };
 constexpr XMFLOAT4 left = { -1.0f,  0.0f, 0.0f, 0.0f };
 
 XMFLOAT4 Camera::m_target		= { 0.0f,  0.0f,   1.0f, 1.0f };
-XMFLOAT4 Camera::m_position	= { 0.0f,  1.0f, -10.0f, 1.0f };
+XMFLOAT4 Camera::m_position	= { 0.0f,  1.5f, -10.0f, 1.0f };
 XMFLOAT4 Camera::m_rotation	= { 0.0f,  0.0f,   0.0f, 0.0f };
 
 static float aspect = 0.0f;
@@ -23,7 +23,7 @@ bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 void Camera::Update()
 {
 	static const XMVECTOR forward = { 0.0f, 0.0f, 1.0f, 1.0f };
-	static float speed = 0.025f;
+	static float speed = 0.1f;
 
 	const auto& cm = Mouse::CursorMovement();
 
@@ -33,8 +33,8 @@ void Camera::Update()
 
 	const auto rrot				= XMVECTOR{ 0.0f, m_rotation.y, 0.0f, 1.0f };
 
-	const auto direction	= XMVector3Rotate(forward, rrot);
-	const auto side				= XMVector3Cross(direction, XMLoadFloat4(&up));
+	const auto direction	= XMVector3Normalize(XMVector3Rotate(forward, rrot));
+	const auto side				= XMVector3Normalize(XMVector3Cross(direction, XMLoadFloat4(&up)));
 
 	if (Keyboard::IsPressed(Scancode::sc_w)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) + speed * direction);
 	if (Keyboard::IsPressed(Scancode::sc_a)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) + speed * side);
@@ -44,11 +44,12 @@ void Camera::Update()
 	const auto	pos = XMLoadFloat4(&m_position);
 
 	XMStoreFloat4(&m_target, XMVectorAdd(pos, direction));
+	Log::Info((std::wstringstream() << m_target.x << '|' << m_target.y << '|' << m_target.z).str());
 }
 
 void Camera::Rotate(int yaw, int pitch)
 {
-	static float scale = 0.4f;
+	static float scale = 1.4f;
 
 	const auto old = XMLoadFloat4(&m_rotation);
 	const auto input = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(scale * static_cast<float>(-pitch)), XMConvertToRadians(scale * static_cast<float>(yaw)), 0.0f);
