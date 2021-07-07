@@ -23,18 +23,24 @@ BoundingVolume::BoundingVolume(std::vector<Vertex>& vertices) noexcept
 	}
 
 	// with this min/max we can determine the AABB and the sphere
+
+	//For the box, set:
 	m_AABB = { min, max };
 
-	{ // determining the sphere need some extra bits of work
+	//For the sphere Version 1 (bigger sphere):
+	{ // determining the sphere needs some extra bits of work
+
 		// first: determining the center point
+
+		// Save min and max as XMVector
 		XMVECTOR vmin = XMLoadFloat3(&min);
 		XMVECTOR vmax = XMLoadFloat3(&max);
 
+		// Centerpoint of the object can be found on the midpoint of the space diagonal 
 		XMStoreFloat4(&m_Sphere.CenterRadius, XMVectorLerp(vmin, vmax, 0.5f));
 
-		// second: determine midpoint
-
-		const auto vdist = vmax - vmin;
+		// second: determine radius of our box
+		const auto vdist = ( vmax - vmin ) / 2;
 		XMFLOAT3 dist;
 		
 		XMStoreFloat3(&dist, vdist);
@@ -45,6 +51,43 @@ BoundingVolume::BoundingVolume(std::vector<Vertex>& vertices) noexcept
 		// setting radius in m_SphereTransformed 'cause it will stay constant
 		m_SphereTransformed.CenterRadius.w = m_Sphere.CenterRadius.w;
 	}
+
+	//For the sphere Version 2.0 (smaller sphere):
+	{ 
+		// first: determining the center point
+		XMFLOAT3 center = { 0,0,0 };
+		float n = 0;
+
+		for (const auto vertex : vertices) // Summ up all vertex vectors
+		{
+			n += 1; // Count number of vertices
+			center += vertex.Position;
+		}
+		//Divide by n to find center
+		center[0] = center[0] / n;
+		center[1] = center[1] / n;
+		center[2] = center[2] / n;
+
+		float max_dist = 0;
+		XMFLOAT3 dist = { 0,0,0 };
+		for (const auto vertex : vertices) // Calculate maximum distance to centerpoint
+		{
+			dist = center - vertex.Position;
+			float curr_dist = dist[0] * dist[0] + dist[1] * dist[1] + dist[2] * dist[2];
+			if (curr_dist > max_dist) {
+				max_dist = curr_dist;
+			}
+
+		}
+
+		m_Sphere.CenterRadius.w = max_dist;
+
+		// setting radius in m_SphereTransformed 'cause it will stay constant
+		m_SphereTransformed.CenterRadius.w = m_Sphere.CenterRadius.w;
+	}
+
+
+
 }
 
 bool BoundingVolume::Intersects(BoundingVolume* other, XMFLOAT3& resolution) noexcept
