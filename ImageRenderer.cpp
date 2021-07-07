@@ -62,7 +62,7 @@ bool ImageRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Gra
   int32_t indexCount = 0;
   DWORD* index = nullptr;
 
-  ObjLoader2::Load("plane.obj", vertex, vertexCount, index, indexCount);
+  OBJLoader::Load("plane.obj", vertex, vertexCount, index, indexCount);
 
   if (FAILED(commandAllocator->Reset())) { Log::Error(L"commandAllocator::Reset failed"); return false; }
 

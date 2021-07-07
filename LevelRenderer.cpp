@@ -69,7 +69,7 @@ bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Gra
 
   const auto level = LevelLoader::Load("level1.txt");
 
-  XMFLOAT3 position = { 3.0f, 0.0f, 3.0f };
+  XMFLOAT3 position = { 4.0f, 0.0f, 3.0f };
 
   for (const auto row : level)
   {
@@ -81,7 +81,7 @@ bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Gra
       case 1: m_models.push_back(new Model("floor.obj", "floor.png", position, rotation)); break;
       case 2:
         m_models.push_back(new Model("floor.obj", "floor.png", position, rotation));
-        m_models.push_back(new Model("barrier.obj", "barrier.png", position, rotation));
+        m_models.push_back(new Model("barrier.obj", "barrier.png", position, { 0.0f, 0.25f, 0.0f, 1.0f }));
         break;
       default:break;
       }

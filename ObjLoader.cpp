@@ -43,53 +43,41 @@ struct V3
 	V3(const float x, const float y, const float z) : x(x), y(y), z(z) {}
 };
 
-static std::vector<V3> vertices;
+static std::vector<V3> positions;
 static std::vector<V2> texCoords;
+static std::vector<Vertex> vertices;
 static std::vector<DWORD> indices;
 
-static void addToMap(std::vector<std::pair<std::string, Vertex>>& map, const std::string& index) noexcept
+static void add(const std::string& face)
 {
-	const auto _indices = split(index, "/");
+	const auto comps = split(face, "/");
 
-	int indexVertex = atoi(_indices[0].c_str()) - 1;
-	int indexTexCoord = atoi(_indices[1].c_str()) - 1;
+	const int first  = atoi(comps[0].c_str()) - 1;
+	const int second = atoi(comps[1].c_str()) - 1;
 
-	indices.push_back(indexVertex);
+	const auto& position = positions[first];
+	const auto& texcoord = texCoords[second];
 
-	auto it = map.begin();
+	const Vertex vertex = {
+		{ position.x, position.y, position.z },
+		{ 1.0f, 1.0f, 1.0f, 1.0f },	// color - white/opaque
+		{ texcoord.u, texcoord.v }
+	};
 
-	while (it != map.end())
-	{
-		if (it->first == index) break;
-
-		++it;
-	}
-
-	if (it != map.end()) return;
-
-	Vertex v;
-
-	v.Position = XMFLOAT3(vertices[indexVertex].x, vertices[indexVertex].y, vertices[indexVertex].z);
-	v.TexCoord = XMFLOAT2(texCoords[indexTexCoord].u, texCoords[indexTexCoord].v);
-	v.Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-	map.push_back({ index, v });
+	vertices.emplace_back(vertex);
+	const DWORD index = indices.size();
+	indices.push_back(index);
 }
 
-void ObjLoader2::Load(
-	std::string filename,
-	Vertex*& outVertices, int& vcount,
-	DWORD*& outIndices, int& icount
-)
+void OBJLoader::Load(const std::string& filename, Vertex*& outVertices, int& vcount, DWORD*& outIndices, int& icount) noexcept
 {
 	std::string to;
 	std::ifstream t(filename);
 
-	std::vector<std::pair<std::string, Vertex>> vertexMap;
-
-	vertices.resize(0);
-	texCoords.resize(0);
 	indices.resize(0);
+	vertices.resize(0);
+	positions.resize(0);
+	texCoords.resize(0);
 
 	while (std::getline(t, to))
 	{
@@ -97,42 +85,33 @@ void ObjLoader2::Load(
 
 		if (comps.size() == 0) continue;
 
+		if (comps[0] == "#") continue;
+		if (comps[0] == "o") continue;
+		if (comps[0] == "s") continue;
+
 		if (comps[0] == "v")
 		{
-			vertices.emplace_back(strtof(comps[1].c_str(), nullptr), strtof(comps[2].c_str(), nullptr), strtof(comps[3].c_str(), nullptr));
+			positions.emplace_back(strtof(comps[1].c_str(), nullptr), strtof(comps[2].c_str(), nullptr), strtof(comps[3].c_str(), nullptr));
 		}
 		else if (comps[0] == "vt")
 		{
-			// TODO y-Achse drehen maybe?
-			texCoords.emplace_back(strtof(comps[1].c_str(), nullptr), 1.0f - strtof(comps[2].c_str(), nullptr));
+			texCoords.emplace_back(strtof(comps[1].c_str(), nullptr), strtof(comps[2].c_str(), nullptr));
 		}
 		else if (comps[0] == "f")
 		{
-			addToMap(vertexMap, comps[1]);
-			addToMap(vertexMap, comps[2]);
-			addToMap(vertexMap, comps[3]);
+			add(comps[1]);
+			add(comps[2]);
+			add(comps[3]);
 		}
 	}
 
-	vcount = (int)vertexMap.size();
+	vcount = (int)vertices.size();
 	outVertices = new Vertex[vcount];
 
-	for (size_t i = 0; i < vertexMap.size(); ++i)
-	{
-		outVertices[i] = std::move(vertexMap[i].second);
-	}
+	memcpy(outVertices, vertices.data(), vcount * sizeof(Vertex));
 
 	icount = (int)indices.size();
 	outIndices = new DWORD[icount];
 
-	memcpy(outIndices, indices.data(), sizeof(DWORD) * icount);
-
-#if defined(_DEBUG) && 0
-	for (int i = 0; i < vcount; i++) {
-		Log::Info(std::to_string(outVertices[i].Position.x) + "/" + std::to_string(outVertices[i].Position.y) + "/" + std::to_string(outVertices[i].Position.z) + "  texcoord: " + "/" + std::to_string(outVertices[i].TexCoord.x) + "/" + std::to_string(outVertices[i].TexCoord.y));
-	}
-	for (int i = 0; i < icount; i++) {
-		Log::Info(std::to_string(outIndices[i]));
-	}
-#endif
+	memcpy(outIndices, indices.data(), sizeof(DWORD)* icount);
 }

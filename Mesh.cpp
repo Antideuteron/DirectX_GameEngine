@@ -28,7 +28,7 @@ void Mesh::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsComm
 
   DWORD* indexList;
 
-  ObjLoader::Load(m_filename, m_Verticies, m_vertexCount, indexList, m_indexCount);
+  OBJLoader::Load(m_filename, m_Verticies, m_vertexCount, indexList, m_indexCount);
 
   if (m_vertexCount && m_indexCount)
   {

@@ -1,18 +1,10 @@
 #pragma once
 
-class ObjLoader2
+class OBJLoader
 {
 public:
-  static void Load(
-    std::string filename,
-    Vertex*& outVertices,
-    int& vcount,
-    DWORD*& outIndices,
-    int& icount
-  );
+  static void Load(const std::string& filename, Vertex*& outVertices, int& vcount, DWORD*& outIndices, int& icount) noexcept;
 
-private:
-  ObjLoader2(void) noexcept = delete;
-  ~ObjLoader2(void) noexcept = delete;
-
+  OBJLoader(void) noexcept = delete;
+  ~OBJLoader(void) noexcept = delete;
 };
