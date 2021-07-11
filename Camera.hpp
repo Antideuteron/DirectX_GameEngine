@@ -14,6 +14,7 @@ public:
   static void Update();
 
   static void Rotate(int, int);
+  static void Translate(XMFLOAT3& translation) noexcept;
 
   static XMFLOAT4X4 GetViewMatrix();
   static XMFLOAT4X4 GetProjectionMatrix();
@@ -22,8 +23,10 @@ private:
   Camera(void) noexcept = delete;
   ~Camera(void) noexcept = delete;
 
-  static XMFLOAT4 m_position;
-  static XMFLOAT4 m_target;
+  static XMFLOAT3 m_position;
 
-  static XMFLOAT4 m_rotation;
+  static float m_YAW, m_PITCH;
+
+  static std::array<XMFLOAT3, 8> m_FrustumPoints;
+
 };

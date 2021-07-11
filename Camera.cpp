@@ -4,69 +4,81 @@
 #include "Display.hpp"
 #include "Keyboard.hpp"
 
-constexpr XMFLOAT4 up		=	{  0.0f, -1.0f, 0.0f, 0.0f };
-constexpr XMFLOAT4 left = { -1.0f,  0.0f, 0.0f, 0.0f };
+XMFLOAT3 Camera::m_position	= { 0.0f, 1.5f, -10.0f};
 
-XMFLOAT4 Camera::m_target		= { 0.0f,  0.0f,   1.0f, 1.0f };
-XMFLOAT4 Camera::m_position	= { 0.0f,  1.5f, -10.0f, 1.0f };
-XMFLOAT4 Camera::m_rotation	= { 0.0f,  0.0f,   0.0f, 0.0f };
+float	Camera::m_YAW = 0.0f;
+float Camera::m_PITCH = 0.0f;
+
+std::array<XMFLOAT3, 8> Camera::m_FrustumPoints;
 
 static float aspect = 0.0f;
+
+static float wrap_angle(const float angle) noexcept
+{
+	if (angle < -XM_PI) return angle + XM_PI + XM_PI;
+	if (angle > XM_PI) return angle - XM_PI - XM_PI;
+	return angle;
+}
 
 bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 {
 	aspect = static_cast<float>(width) / static_cast<float>(height);
+
+
 
 	return true;
 }
 
 void Camera::Update()
 {
-	static const XMVECTOR forward = { 0.0f, 0.0f, 1.0f, 1.0f };
-	static float speed = 0.1f;
-
 	const auto& cm = Mouse::CursorMovement();
 
-	Rotate(cm.first, cm.second);
+	if (cm.first || cm.second) Camera::Rotate(cm.first, cm.second);
 
-	// TODO Fix Seitwärtsbewegung 
+	XMFLOAT3 translation = { 0.0f, 0.0f, 0.0f };
 
-	const auto rrot				= XMVECTOR{ 0.0f, m_rotation.y, 0.0f, 1.0f };
+	if (Keyboard::IsPressed(Scancode::sc_w)) translation.z -= 1.0f;
+	if (Keyboard::IsPressed(Scancode::sc_a)) translation.x -= 1.0f;
+	if (Keyboard::IsPressed(Scancode::sc_s)) translation.z += 1.0f;
+	if (Keyboard::IsPressed(Scancode::sc_d)) translation.x += 1.0f;
 
-	const auto direction	= XMVector3Normalize(XMVector3Rotate(forward, rrot));
-	const auto side				= XMVector3Normalize(XMVector3Cross(direction, XMLoadFloat4(&up)));
-
-	if (Keyboard::IsPressed(Scancode::sc_w)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) + speed * direction);
-	if (Keyboard::IsPressed(Scancode::sc_a)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) + speed * side);
-	if (Keyboard::IsPressed(Scancode::sc_s)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) - speed * direction);
-	if (Keyboard::IsPressed(Scancode::sc_d)) XMStoreFloat4(&m_position, XMLoadFloat4(&m_position) - speed * side);
-
-	const auto	pos = XMLoadFloat4(&m_position);
-
-	XMStoreFloat4(&m_target, XMVectorAdd(pos, direction));
-	Log::Info((std::wstringstream() << m_target.x << '|' << m_target.y << '|' << m_target.z).str());
+	Translate(translation);
 }
 
 void Camera::Rotate(int yaw, int pitch)
 {
-	static float scale = 1.4f;
+	static float speed = -0.01f;
 
-	const auto old = XMLoadFloat4(&m_rotation);
-	const auto input = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(scale * static_cast<float>(-pitch)), XMConvertToRadians(scale * static_cast<float>(yaw)), 0.0f);
-	const auto _new = XMQuaternionNormalize(XMQuaternionMultiply(input, old));
+	m_YAW = wrap_angle(m_YAW + speed * static_cast<float>(yaw));
+	m_PITCH = std::min(std::max(m_PITCH + speed * static_cast<float>(pitch), 0.995f * -XM_PIDIV2), 0.995f * XM_PIDIV2);
+}
 
-	XMStoreFloat4(&m_rotation, _new);
+void Camera::Translate(XMFLOAT3& translation) noexcept
+{
+	static float speed = 0.05f;
+
+	XMStoreFloat3(
+		&translation,
+		XMVector3Transform(
+			XMLoadFloat3(&translation),
+			XMMatrixRotationRollPitchYaw(m_PITCH, m_YAW, 0.0f) * XMMatrixScaling(speed, speed, speed)
+		)
+	);
+
+	m_position.x += translation.x;
+	m_position.z += translation.z;
 }
 
 XMFLOAT4X4 Camera::GetViewMatrix()
 {
 	static XMFLOAT4X4 matrix;
+	static const XMVECTOR forward = { 0.0f, 0.0f, 1.0f, 1.0f };
 
-	const XMVECTOR vup = XMLoadFloat4(&up);
-	const XMVECTOR vtar = XMLoadFloat4(&m_target);
-	const XMVECTOR vpos = XMLoadFloat4(&m_position);
-
-	XMStoreFloat4x4(&matrix, XMMatrixLookAtRH(vpos, vtar, vup));
+	const auto lookVector = XMVector3Transform(forward, XMMatrixRotationRollPitchYaw(m_PITCH, m_YAW, 0.0f));
+	const auto position = XMLoadFloat3(&m_position);
+	const auto target = position + lookVector;
+	
+	XMStoreFloat4x4(&matrix, XMMatrixLookAtLH(position, target, XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f)));
 
 	return matrix;
 }
