@@ -40,11 +40,19 @@ Display::Display(const DisplayCreateInfo* info) :
 
   SetWindowLong(m_hWnd, GWL_STYLE, 0);
   ShowWindow(m_hWnd, SW_SHOW);
+  while (ShowCursor(0) >= 0);
+
+  RECT rect;
+  GetClientRect(m_hWnd, &rect);
+  MapWindowPoints(m_hWnd, nullptr, reinterpret_cast<POINT*>(&rect), 2);
+  ClipCursor(&rect);
 }
 
 Display::~Display(void) noexcept
 {
   DestroyWindow(m_hWnd);
+  while (ShowCursor(1) < 0);
+  ClipCursor(nullptr);
 
   m_hWnd = nullptr;
 }
