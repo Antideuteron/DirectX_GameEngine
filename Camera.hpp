@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderer.h"
+#include "BoundingVolume.h"
 
 /*
   TODO Camera Klasse neu aufsetzen!!!
@@ -23,10 +24,13 @@ private:
   Camera(void) noexcept = delete;
   ~Camera(void) noexcept = delete;
 
-  static XMFLOAT3 m_position;
+  static XMFLOAT3 m_Position;
+  static XMFLOAT4 m_Rotation;
 
   static float m_YAW, m_PITCH;
 
-  static std::array<XMFLOAT3, 8> m_FrustumPoints;
+  static BoundingVolume m_BoundingVolume;
+
+  static std::array<Vertex, 8> m_FrustumPoints;
 
 };

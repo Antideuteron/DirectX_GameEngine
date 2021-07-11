@@ -40,6 +40,7 @@ struct OBB
 class BoundingVolume
 {
 public:
+	BoundingVolume(void) noexcept = default;
 	BoundingVolume(std::vector<Vertex>& vertices) noexcept;
 	~BoundingVolume(void) noexcept = default;
 
@@ -47,7 +48,6 @@ public:
 	void Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept;
 
 private:
-	BoundingVolume(void) noexcept = default;
 
 	XMFLOAT3 insectCheck(const OBB&) noexcept;
 	XMFLOAT3 insectCheck(const AABB&) noexcept;

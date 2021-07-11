@@ -1,7 +1,7 @@
 #include "Keyboard.hpp"
 
-static std::vector<uint32_t> Down;
-static std::vector<uint32_t> Up;
+static std::set<uint32_t> Down;
+static std::set<uint32_t> Up;
 
 void Keyboard::KeyUp(const uint32_t key) noexcept
 {
@@ -10,7 +10,7 @@ void Keyboard::KeyUp(const uint32_t key) noexcept
 		if (up == key) return;
 	}
 
-	Up.emplace_back(key);
+	Up.insert(key);
 
 	for (auto down = Down.begin(); down != Down.end(); ++down)
 	{
@@ -28,7 +28,7 @@ void Keyboard::KeyDown(const uint32_t key) noexcept
 		if (down == key) return;
 	}
 
-	Down.emplace_back(key);
+	Down.insert(key);
 }
 
 bool Keyboard::IsPressed(const uint32_t key) noexcept
