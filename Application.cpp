@@ -89,9 +89,9 @@ void Application::Start(void) noexcept
     TEMPORÄR, DIE KEY ABFRAGEN HIER
     #########################
     */
-    if (Keyboard::IsPressed(sc_h)) keyH();
+    //if (Keyboard::IsPressed(sc_h)) keyH();
     if (Keyboard::IsReleased(sc_l)) keyL();
-    if (Keyboard::IsReleased(sc_x)) keyX();
+    //if (Keyboard::IsReleased(sc_x)) keyX();
     if (Keyboard::IsReleased(sc_f11)) keyF11();
     if (Keyboard::IsReleased(sc_escape)) keyEsc();
 

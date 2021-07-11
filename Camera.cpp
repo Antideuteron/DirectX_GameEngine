@@ -78,7 +78,7 @@ XMFLOAT4X4 Camera::GetViewMatrix()
 	const auto position = XMLoadFloat3(&m_position);
 	const auto target = position + lookVector;
 	
-	XMStoreFloat4x4(&matrix, XMMatrixLookAtLH(position, target, XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f)));
+	XMStoreFloat4x4(&matrix, XMMatrixLookAtLH(position, target, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
 
 	return matrix;
 }
@@ -87,7 +87,7 @@ XMFLOAT4X4 Camera::GetProjectionMatrix()
 {
 	static XMFLOAT4X4 matrix;
 
-	XMStoreFloat4x4(&matrix, XMMatrixPerspectiveFovRH(75.0f, aspect, 0.01f, 10000.0f));
+	XMStoreFloat4x4(&matrix, XMMatrixPerspectiveFovRH(XMConvertToRadians(75.0f), aspect, 0.01f, 10000.0f));
 
 	return matrix;
 }
