@@ -1,6 +1,7 @@
 #include "LevelRenderer.h"
 
 #include "LevelLoader.h"
+#include "FrustumCuller.hpp"
 
 bool LevelRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width, int height)
 {
@@ -127,7 +128,7 @@ bool LevelRenderer::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& comma
   commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
   commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-  for (auto& model : m_models) model->PopulateCommandList(commandList, nullptr, 0);
+  Render(commandList);
 
   const auto transe2 = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
   commandList->ResourceBarrier(1, &transe2);
@@ -207,4 +208,17 @@ bool LevelRenderer::CreateRootSignature(ComPtr<ID3D12Device>& device)
   Log::Info(L"CreateRootSignature succeeded");
 
   return true;
+}
+
+void LevelRenderer::Render(ComPtr<ID3D12GraphicsCommandList>& commandList) noexcept
+{
+  std::vector<Model*> renderables;
+  const auto start = std::chrono::system_clock::now();
+  FrustumCull(m_models, renderables);
+  const auto end = std::chrono::system_clock::now();
+  const std::chrono::duration<double> diff = (end - start);
+
+  Log::Info((std::wstringstream() << L"Culling: " << diff.count() * 1000.0 << "ms - " << renderables.size() << " of " << m_models.size() << " models visible").str());
+
+  for (auto& model : renderables) model->PopulateCommandList(commandList, nullptr, 0);
 }

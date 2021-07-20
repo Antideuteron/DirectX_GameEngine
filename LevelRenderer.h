@@ -23,5 +23,8 @@ protected:
   std::vector<Model*> m_models;
   std::vector<std::vector<int>> levelLayout;
 
+private:
+  void Render(ComPtr<ID3D12GraphicsCommandList>& commandList) noexcept;
+
 };
 

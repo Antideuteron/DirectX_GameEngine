@@ -20,6 +20,8 @@ public:
   static XMFLOAT4X4 GetViewMatrix();
   static XMFLOAT4X4 GetProjectionMatrix();
 
+  static inline BoundingVolume& BV(void) noexcept { return m_BoundingVolume; }
+
 private:
   Camera(void) noexcept = delete;
   ~Camera(void) noexcept = delete;
@@ -27,6 +29,7 @@ private:
   static XMFLOAT3 m_Position;
   static XMFLOAT4 m_Rotation;
 
+  static float speed;
   static float m_YAW, m_PITCH;
 
   static BoundingVolume m_BoundingVolume;

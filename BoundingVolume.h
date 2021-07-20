@@ -50,6 +50,13 @@ struct OBB
 	~OBB(void) = default;
 };
 
+enum class BoundingVolumeTestType
+{
+	OBB,
+	AABB,
+	Sphere
+};
+
 class BoundingVolume
 {
 public:
@@ -60,11 +67,13 @@ public:
 	bool Intersects(BoundingVolume* other, XMFLOAT3& resolution) noexcept;
 	void Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept;
 
-private:
-	XMFLOAT3 insectCheck(const OBB&) noexcept;
-	XMFLOAT3 insectCheck(const AABB&) noexcept;
-	XMFLOAT3 insectCheck(const Sphere&) noexcept;
+	static inline BoundingVolumeTestType& BVTT(void) noexcept { return TestType; }
 
+	XMFLOAT3&& insectCheck(const OBB&) noexcept;
+	XMFLOAT3&& insectCheck(const AABB&) noexcept;
+	XMFLOAT3&& insectCheck(const Sphere&) noexcept;
+
+private:
 	OBB m_OBB;
 	AABB m_AABB;
 	Sphere m_Sphere;
@@ -76,6 +85,8 @@ private:
 	Range rangeOBB;
 	Range rangeAABB;
 	Range rangeSphere;
+
+	static BoundingVolumeTestType TestType;
 
 	friend class Model;
 

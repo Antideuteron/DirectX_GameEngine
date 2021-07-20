@@ -3,6 +3,8 @@
 constexpr const float max_float = std::numeric_limits<float>::max();
 constexpr const float min_float = std::numeric_limits<float>::min();
 
+BoundingVolumeTestType BoundingVolume::TestType = BoundingVolumeTestType::Sphere;
+
 BoundingVolume::BoundingVolume(std::vector<Vertex>& vertices) noexcept
 {
 	// initializes with extremes
@@ -97,6 +99,19 @@ BoundingVolume::BoundingVolume(std::vector<Vertex>& vertices) noexcept
 
 bool BoundingVolume::Intersects(BoundingVolume* other, XMFLOAT3& resolution) noexcept
 {
+	switch (TestType)
+	{
+		case BoundingVolumeTestType::Sphere:
+			resolution = insectCheck(other->m_SphereTransformed);
+			return XMVector3LengthSq(XMLoadFloat3(&resolution)).m128_f32[0] != 0.0f;
+		case BoundingVolumeTestType::AABB:
+			resolution = insectCheck(other->m_AABBTransformed);
+			return XMVector3LengthSq(XMLoadFloat3(&resolution)).m128_f32[0] != 0.0f;
+		case BoundingVolumeTestType::OBB:
+			resolution = insectCheck(other->m_OBBTransformed);
+			return XMVector3LengthSq(XMLoadFloat3(&resolution)).m128_f32[0] != 0.0f;
+	}
+
 	return false;
 }
 
@@ -157,24 +172,24 @@ void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 	}
 }
 
-XMFLOAT3 BoundingVolume::insectCheck(const OBB& other) noexcept
+XMFLOAT3&& BoundingVolume::insectCheck(const OBB& other) noexcept
 {
 	return XMFLOAT3();
 }
 
-XMFLOAT3 BoundingVolume::insectCheck(const AABB& other) noexcept
+XMFLOAT3&& BoundingVolume::insectCheck(const AABB& other) noexcept
 {
 	return XMFLOAT3();
 }
 
-XMFLOAT3 BoundingVolume::insectCheck(const Sphere& other) noexcept
+XMFLOAT3&& BoundingVolume::insectCheck(const Sphere& other) noexcept
 {
-	const auto combinedRadius = m_Sphere.CenterRadius.w + other.CenterRadius.w;
+	const auto combinedRadius = m_SphereTransformed.CenterRadius.w + other.CenterRadius.w;
 	// determine the distance vector between both spheres
 	const auto dist = XMFLOAT3{
-		m_Sphere.CenterRadius.x - other.CenterRadius.x,
-		m_Sphere.CenterRadius.y - other.CenterRadius.y,
-		m_Sphere.CenterRadius.z - other.CenterRadius.z
+		m_SphereTransformed.CenterRadius.x - other.CenterRadius.x,
+		m_SphereTransformed.CenterRadius.y - other.CenterRadius.y,
+		m_SphereTransformed.CenterRadius.z - other.CenterRadius.z
 	};
 
 	// not a beauty but as previous in update; straight forward for educational purpose

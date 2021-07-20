@@ -5,12 +5,14 @@
 #include "Keyboard.hpp"
 
 static constexpr float fov = XMConvertToRadians(75.0f);
-static constexpr float farDistance = 20.0f;
+static constexpr float farDistance = 15.0f;
 static constexpr float nearDistance = 0.01f;
 
 XMFLOAT3 Camera::m_Position = { 0.0f, 1.5f, -10.0f };
 XMFLOAT4 Camera::m_Rotation;
 BoundingVolume Camera::m_BoundingVolume;
+
+float Camera::speed = 0.05f;
 
 float	Camera::m_YAW = 0.0f;
 float Camera::m_PITCH = 0.0f;
@@ -30,29 +32,29 @@ bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 {
 	aspect = static_cast<float>(width) / static_cast<float>(height);
 
-	const auto farCenter = XMLoadFloat3(&m_Position) - XMVECTOR{ 0.0f, 0.0f, farDistance };
+	const auto farCenter  = XMLoadFloat3(&m_Position) - XMVECTOR{ 0.0f, 0.0f, farDistance };
 	const auto nearCenter = XMLoadFloat3(&m_Position) - XMVECTOR{ 0.0f, 0.0f, nearDistance };
 
-	const float farHeight = 2.0f * tanf(fov * 0.5f) * farDistance;
+	const float farHeight  = 2.0f * tanf(fov * 0.5f) * farDistance;
 	const float nearHeight = 2.0f * tanf(fov * 0.5f) * nearDistance;
 
-	const float farWidth = aspect * farHeight;
+	const float farWidth  = aspect * farHeight;
 	const float nearWidth = aspect * nearHeight;
 
-	constexpr auto up = XMVECTOR{ 0.0f, 1.0f, 0.0f };
+	constexpr auto up    = XMVECTOR{ 0.0f, 1.0f, 0.0f };
 	constexpr auto right = XMVECTOR{ 1.0f, 0.0f, 0.0f };
 
-	const auto farTopLeft = farCenter + up * (farHeight * 0.5f) - right * (farWidth * 0.5f);
-	const auto farTopRight = farCenter + up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
-	const auto farBottomLeft = farCenter - up* (farHeight * 0.5f) - right * (farWidth * 0.5f);
+	const auto farTopLeft     = farCenter + up * (farHeight * 0.5f) - right * (farWidth * 0.5f);
+	const auto farTopRight    = farCenter + up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
+	const auto farBottomLeft  = farCenter - up* (farHeight * 0.5f) - right * (farWidth * 0.5f);
 	const auto farBottomRight = farCenter - up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
 
 	const float neg = m_Position.y * (nearHeight * 0.5f) - m_Position.x * (nearWidth * 0.5f);
 	const float pos = m_Position.y * (nearHeight * 0.5f) + m_Position.x * (nearWidth * 0.5f);
 
-	const auto nearTopLeft = nearCenter + XMVECTOR{ neg, neg, neg };
-	const auto nearTopRight = nearCenter + XMVECTOR{ pos, pos, pos };
-	const auto nearBottomLeft = nearCenter - XMVECTOR{ neg, neg, neg };
+	const auto nearTopLeft     = nearCenter + XMVECTOR{ neg, neg, neg };
+	const auto nearTopRight    = nearCenter + XMVECTOR{ pos, pos, pos };
+	const auto nearBottomLeft  = nearCenter - XMVECTOR{ neg, neg, neg };
 	const auto nearBottomRight = nearCenter - XMVECTOR{ pos, pos, pos };
 
 	m_FrustumPoints[0] = Vertex(nearTopLeft);
@@ -76,6 +78,9 @@ bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 
 void Camera::Update()
 {
+	speed = 0.05f * (Keyboard::IsPressed(sc_shiftLeft) ? 1.5f : 1.0f);
+	speed *= (Keyboard::IsPressed(sc_controlLeft) ? 2.0f / 3.0f : 1.0f);
+
 	const auto& cm = Mouse::CursorMovement();
 
 	if (cm.first || cm.second) Camera::Rotate(cm.first, cm.second);
@@ -105,10 +110,6 @@ void Camera::Rotate(int yaw, int pitch)
 
 void Camera::Translate(XMFLOAT3& translation) noexcept
 {
-	static float speed = 0.05f * (Keyboard::IsPressed(sc_shiftLeft) ? 2.5f : 1.0f);
-
-	Log::Info((std::wstringstream() << speed).str());
-
 	XMStoreFloat3(
 		&translation,
 		XMVector3Transform(

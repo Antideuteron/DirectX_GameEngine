@@ -33,8 +33,8 @@ bool Application::Initialize(HINSTANCE instance) noexcept
 
   DisplayCreateInfo dci;
 
-  dci.Width = 1600;
-  dci.Height = 900;
+  dci.Width = 1280;
+  dci.Height = 720;
   dci.Fullscreen = false;
   dci.Title = L"Window Title";
 
