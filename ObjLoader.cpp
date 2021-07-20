@@ -95,7 +95,7 @@ void OBJLoader::Load(const std::string& filename, Vertex*& outVertices, int& vco
 		}
 		else if (comps[0] == "vt")
 		{
-			texCoords.emplace_back(strtof(comps[1].c_str(), nullptr), strtof(comps[2].c_str(), nullptr));
+			texCoords.emplace_back(strtof(comps[1].c_str(), nullptr), 1.0f - strtof(comps[2].c_str(), nullptr));
 		}
 		else if (comps[0] == "f")
 		{
