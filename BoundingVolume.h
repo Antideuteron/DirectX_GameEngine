@@ -1,5 +1,18 @@
 #pragma once
 
+struct Range
+{
+	float xbegin;
+	float xend;
+	float ybegin;
+	float yend;
+	float zbegin;
+	float zend;
+
+	Range(void) noexcept = default;
+	~Range(void) noexcept = default;
+};
+
 struct Sphere
 {
 	XMFLOAT4 CenterRadius;
@@ -48,7 +61,6 @@ public:
 	void Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept;
 
 private:
-
 	XMFLOAT3 insectCheck(const OBB&) noexcept;
 	XMFLOAT3 insectCheck(const AABB&) noexcept;
 	XMFLOAT3 insectCheck(const Sphere&) noexcept;
@@ -60,6 +72,10 @@ private:
 	OBB m_OBBTransformed;
 	AABB m_AABBTransformed;
 	Sphere m_SphereTransformed;
+
+	Range rangeOBB;
+	Range rangeAABB;
+	Range rangeSphere;
 
 	friend class Model;
 

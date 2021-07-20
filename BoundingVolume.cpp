@@ -112,10 +112,10 @@ void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 	const auto vpos = XMLoadFloat3(position);
 	const auto vrot = XMLoadFloat4(rotation);
 
-	// create affine transformation matrix
-	const auto transform = XMMatrixAffineTransformation(vsca, vori, vrot, vpos);
-
 	{// first: OBB
+		// create affine transformation matrix
+		const auto transform = XMMatrixAffineTransformation(vsca, vori, vrot, vpos);
+
 		const auto obb_max = XMLoadFloat4(&m_OBB.Max);
 		const auto obb_min = XMLoadFloat4(&m_OBB.Min);
 
@@ -133,6 +133,13 @@ void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 		m_AABBTransformed.Min.x = m_AABB.Min.x + position->x;
 		m_AABBTransformed.Min.y = m_AABB.Min.y + position->y;
 		m_AABBTransformed.Min.z = m_AABB.Min.z + position->z;
+
+		rangeAABB.xbegin = m_AABBTransformed.Min.x;
+		rangeAABB.ybegin = m_AABBTransformed.Min.y;
+		rangeAABB.zbegin = m_AABBTransformed.Min.z;
+		rangeAABB.xend   = m_AABBTransformed.Max.x;
+		rangeAABB.yend   = m_AABBTransformed.Max.y;
+		rangeAABB.zend   = m_AABBTransformed.Max.z;
 	}
 
 	{// third: Sphere
@@ -140,6 +147,13 @@ void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 		m_SphereTransformed.CenterRadius.x = m_Sphere.CenterRadius.x + position->x;
 		m_SphereTransformed.CenterRadius.y = m_Sphere.CenterRadius.y + position->y;
 		m_SphereTransformed.CenterRadius.z = m_Sphere.CenterRadius.z + position->z;
+
+		rangeSphere.xbegin = m_SphereTransformed.CenterRadius.x - m_SphereTransformed.CenterRadius.w * 0.5f;
+		rangeSphere.ybegin = m_SphereTransformed.CenterRadius.y - m_SphereTransformed.CenterRadius.w * 0.5f;
+		rangeSphere.zbegin = m_SphereTransformed.CenterRadius.z - m_SphereTransformed.CenterRadius.w * 0.5f;
+		rangeSphere.xend   = m_SphereTransformed.CenterRadius.x - m_SphereTransformed.CenterRadius.w * 0.5f;
+		rangeSphere.yend   = m_SphereTransformed.CenterRadius.y - m_SphereTransformed.CenterRadius.w * 0.5f;
+		rangeSphere.zend   = m_SphereTransformed.CenterRadius.z - m_SphereTransformed.CenterRadius.w * 0.5f;
 	}
 }
 

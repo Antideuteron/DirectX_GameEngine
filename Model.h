@@ -20,7 +20,7 @@ private:
   XMFLOAT3 m_position;
   XMFLOAT4 m_rotation;
   Mesh* m_mesh;
-  BoundingVolume m_BoundingVolume;
+  BoundingVolume* m_BoundingVolume;
   ConstantBuffer m_constantBuffer;
 
 };

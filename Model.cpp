@@ -19,14 +19,14 @@ void Model::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCom
   vertices.resize(m_mesh->VertexCount());
   memcpy(vertices.data(), m_mesh->Vertices(), sizeof(Vertex) * m_mesh->VertexCount());
 
-  m_BoundingVolume = BoundingVolume(vertices);
-  m_BoundingVolume.Update(&m_position, &m_rotation);
+  m_BoundingVolume = new BoundingVolume(vertices);
+  m_BoundingVolume->Update(&m_position, &m_rotation);
 }
 
 void Model::Update(int frameIndex)
 {
   m_mesh->Update(frameIndex);
-  m_BoundingVolume.Update(&m_position, &m_rotation);
+  m_BoundingVolume->Update(&m_position, &m_rotation);
 
   static const auto scale = XMVECTOR{ 1.0f, 1.0f, 1.0f, 1.0f };  // this static local variables reduce
   static const auto origin = XMVECTOR{ 0.0f, 0.0f, 0.0f, 1.0f }; // each stackframe by 16 bytes
