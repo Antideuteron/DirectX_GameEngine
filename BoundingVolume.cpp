@@ -123,6 +123,11 @@ void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 
 XMFLOAT3 BoundingVolume::insectCheck(const BoundingOrientedBox& other) noexcept
 {
+	if (m_OBBTransformed.Intersects(other))
+	{
+		return { 1.0f, 0.0f, 1.0f };
+	}
+
 	return { 0.0f, 0.0f, 0.0f };
 }
 
@@ -130,7 +135,22 @@ XMFLOAT3 BoundingVolume::insectCheck(const BoundingBox& other) noexcept
 {
 	if (m_AABBTransformed.Intersects(other))
 	{
-		//m_AABBTransformed.
+		const auto tminx = m_AABBTransformed.Center.x - m_AABBTransformed.Extents.x;
+		const auto tmaxx = m_AABBTransformed.Center.x + m_AABBTransformed.Extents.x;
+		const auto tminz = m_AABBTransformed.Center.z - m_AABBTransformed.Extents.z;
+		const auto tmaxz = m_AABBTransformed.Center.z + m_AABBTransformed.Extents.z;
+
+		const auto ominx = other.Center.x - other.Extents.x;
+		const auto omaxx = other.Center.x + other.Extents.x;
+		const auto ominz = other.Center.z - other.Extents.z;
+		const auto omaxz = other.Center.z + other.Extents.z;
+
+		const float xmint = tminx - omaxx;
+		const float xmino = ominx - tmaxx;
+		const float zmint = tminz - omaxz;
+		const float zmino = ominz - tmaxz;
+
+		return { (xmint > xmino ? xmint : xmino) * 0.5f, 0.0f, (zmint > zmino ? zmint : zmino) * 0.5f };
 	}
 
 	return { 0.0f, 0.0f, 0.0f };

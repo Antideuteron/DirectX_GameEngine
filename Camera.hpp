@@ -32,8 +32,7 @@ private:
   static float speed;
   static float m_YAW, m_PITCH;
 
+  static BoundingVolume m_Body;
   static BoundingVolume m_Frustum;
-
-  static std::array<Vertex, 8> m_FrustumPoints;
 
 };

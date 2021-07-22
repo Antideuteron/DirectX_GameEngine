@@ -17,8 +17,6 @@ float Camera::speed = 0.05f;
 float	Camera::m_YAW = 0.0f;
 float Camera::m_PITCH = 0.0f;
 
-std::array<Vertex, 8> Camera::m_FrustumPoints;
-
 static float aspect = 0.0f;
 
 static float wrap_angle(const float angle) noexcept
@@ -39,19 +37,9 @@ bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 	fp.resize(8);
 	bf.GetCorners(fp.data());
 
-	m_FrustumPoints[0] = Vertex(fp[0], {}, {});
-	m_FrustumPoints[1] = Vertex(fp[1], {}, {});
-	m_FrustumPoints[2] = Vertex(fp[2], {}, {});
-	m_FrustumPoints[3] = Vertex(fp[3], {}, {});
-
-	m_FrustumPoints[4] = Vertex(fp[4], {}, {});
-	m_FrustumPoints[5] = Vertex(fp[5], {}, {});
-	m_FrustumPoints[6] = Vertex(fp[6], {}, {});
-	m_FrustumPoints[7] = Vertex(fp[7], {}, {});
-
 	std::vector<Vertex> vertices;
 
-	for (const auto& vertex: m_FrustumPoints) vertices.push_back(vertex);
+	for (const auto& vertex : fp) vertices.push_back(Vertex(vertex, {}, {}));
 
 	m_Frustum = BoundingVolume(vertices);
 

@@ -10,7 +10,7 @@ bool DeviceManager::CreateDevice(ComPtr<ID3D12Device>& device, ComPtr<IDXGIFacto
     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debugController.GetAddressOf()))))
     {
       debugController->EnableDebugLayer();
-      
+
       dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
     }
   }
@@ -55,15 +55,15 @@ bool DeviceManager::CreateDevice(ComPtr<ID3D12Device>& device, ComPtr<IDXGIFacto
   if (useWarp)
   {
     const bool failed = !FAILED(D3D12CreateDevice(pWARP.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf())));
-    
+
     pWARP->Release();
-    
+
     return failed;
   }
 
   pWARP->Release();
   pAdapterToUse->Release();
-  
+
   return true;
 }
 
@@ -111,11 +111,12 @@ bool DeviceManager::CreateSwapChain(HWND& hwnd, ComPtr<IDXGIFactory4>& factory, 
   swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
   swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
   swapChainDesc.SampleDesc.Count = 1;
+  swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; // TODO: set back to 0
 
   ComPtr<IDXGISwapChain1> swapChain1;
 
   if (FAILED(factory->CreateSwapChainForHwnd(commandQueue.Get(), hwnd, &swapChainDesc, nullptr, nullptr, &swapChain1))) return false;
-  
+
   if (FAILED(swapChain1.As(&swapChain))) return false;
 
   Log::Info("Created Swap Chain");

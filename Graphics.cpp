@@ -13,7 +13,7 @@ bool Graphics::Init(HWND hwnd, int width, int height)
   if (m_loaded)
   {
     Release();
-    
+
     m_loaded = false;
     m_resize = true;
   }
@@ -67,7 +67,7 @@ bool Graphics::Render()
   m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
   // Present the frame.
-  if (FAILED(m_swapChain->Present(1, 0)))
+  if (FAILED(m_swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING))) // TODO: set back to (1, 0)
   {
     m_device->GetDeviceRemovedReason();
 
