@@ -20,7 +20,7 @@ public:
   static XMFLOAT4X4 GetViewMatrix();
   static XMFLOAT4X4 GetProjectionMatrix();
 
-  static inline BoundingVolume& BV(void) noexcept { return m_BoundingVolume; }
+  static inline BoundingVolume& Frustum(void) noexcept { return m_Frustum; }
 
 private:
   Camera(void) noexcept = delete;
@@ -32,7 +32,7 @@ private:
   static float speed;
   static float m_YAW, m_PITCH;
 
-  static BoundingVolume m_BoundingVolume;
+  static BoundingVolume m_Frustum;
 
   static std::array<Vertex, 8> m_FrustumPoints;
 

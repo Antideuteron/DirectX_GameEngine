@@ -7,94 +7,74 @@ BoundingVolumeTestType BoundingVolume::TestType = BoundingVolumeTestType::Sphere
 
 BoundingVolume::BoundingVolume(std::vector<Vertex>& vertices) noexcept
 {
-	// initializes with extremes
-	XMFLOAT3 min = { max_float, max_float, max_float };
-	XMFLOAT3 max = { min_float, min_float, min_float };
+	BoundingBox::CreateFromPoints(m_AABB, vertices.size(), (XMFLOAT3*)vertices.data(), sizeof(Vertex));
+	BoundingSphere::CreateFromPoints(m_Sphere, vertices.size(), (XMFLOAT3*)vertices.data(), sizeof(Vertex));
+	BoundingOrientedBox::CreateFromPoints(m_OBB, vertices.size(), (XMFLOAT3*)vertices.data(), sizeof(Vertex));
 
-	for (const auto vertex : vertices) // I think this is magic
-	{
-		// check component-wise for lower bound
-		if (vertex.Position.x < min.x) min.x = vertex.Position.x;
-		if (vertex.Position.y < min.y) min.y = vertex.Position.y;
-		if (vertex.Position.z < min.z) min.z = vertex.Position.z;
+	//// initializes with extremes
+	//XMFLOAT3 min = { max_float, max_float, max_float };
+	//XMFLOAT3 max = { min_float, min_float, min_float };
 
-		// check component-wise for upper bound
-		if (vertex.Position.x > max.x) max.x = vertex.Position.x;
-		if (vertex.Position.y > max.y) max.y = vertex.Position.y;
-		if (vertex.Position.z > max.z) max.z = vertex.Position.z;
-	}
+	//for (const auto vertex : vertices) // I think this is magic
+	//{
+	//	// check component-wise for lower bound
+	//	if (vertex.Position.x < min.x) min.x = vertex.Position.x;
+	//	if (vertex.Position.y < min.y) min.y = vertex.Position.y;
+	//	if (vertex.Position.z < min.z) min.z = vertex.Position.z;
 
-	// with this min/max we can determine the AABB and the sphere
+	//	// check component-wise for upper bound
+	//	if (vertex.Position.x > max.x) max.x = vertex.Position.x;
+	//	if (vertex.Position.y > max.y) max.y = vertex.Position.y;
+	//	if (vertex.Position.z > max.z) max.z = vertex.Position.z;
+	//}
 
-	//For the box, set:
-	m_AABB = { min, max };
+	//// with this min/max we can determine the AABB and the sphere
 
-	//For the sphere Version 1 (bigger sphere):
-	{ // determining the sphere needs some extra bits of work
+	////For the box, set:
+	//m_AABB = { min, max };
 
-		// first: determining the center point
+	////For the sphere Version 2.0 (smaller sphere):
+	//{ 
+	//	// first: determining the center point
+	//	XMFLOAT3 center = { 0.0f, 0.0f, 0.0f };
+	//	float n = 1.0f / static_cast<float>(vertices.size());
 
-		// Save min and max as XMVector
-		XMVECTOR vmin = XMLoadFloat3(&min);
-		XMVECTOR vmax = XMLoadFloat3(&max);
+	//	for (const auto& vertex : vertices) // Sum up all vertex vectors
+	//	{
+	//		center.x += vertex.Position.x;
+	//		center.y += vertex.Position.y;
+	//		center.z += vertex.Position.z;
+	//	}
 
-		// Centerpoint of the object can be found on the midpoint of the space diagonal 
-		XMStoreFloat4(&m_Sphere.CenterRadius, XMVectorLerp(vmin, vmax, 0.5f));
+	//	//Divide by n to find center
+	//	center.x *= n;
+	//	center.y *= n;
+	//	center.z *= n;
 
-		// second: determine radius of our box
-		const auto vdist = ( vmax - vmin ) / 2;
-		XMFLOAT3 dist;
-		
-		XMStoreFloat3(&dist, vdist);
-		
-		// not a beauty at all but straight forward for educational purpose
-		m_Sphere.CenterRadius.w = std::sqrtf(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
+	//	float max_dist = 0.0f;
+	//	for (const auto& vertex : vertices) // Calculate maximum distance to center point
+	//	{
+	//		XMFLOAT3 dist = {
+	//			center.x - vertex.Position.x,
+	//			center.y - vertex.Position.y,
+	//			center.z - vertex.Position.z
+	//		};
 
-		// setting radius in m_SphereTransformed 'cause it will stay constant
-		m_SphereTransformed.CenterRadius.w = m_Sphere.CenterRadius.w;
-	}
+	//		float curr_dist = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 
-	//For the sphere Version 2.0 (smaller sphere):
-	{ 
-		// first: determining the center point
-		XMVECTOR center = { 0.0f, 0.0f, 0.0f };
-		float n = 0;
+	//		if (curr_dist > max_dist) {
+	//			max_dist = curr_dist;
+	//		}
+	//	}
 
-		for (const auto vertex : vertices) // Summ up all vertex vectors
-		{
-			n += 1; // Count number of vertices
-			center.m128_f32[0] += vertex.Position.x;
-			center.m128_f32[1] += vertex.Position.y;
-			center.m128_f32[2] += vertex.Position.z;
-		}
-		//Divide by n to find center
-		center.m128_f32[0] = center.m128_f32[0] / n;
-		center.m128_f32[1] = center.m128_f32[1] / n;
-		center.m128_f32[2] = center.m128_f32[2] / n;
+	//	m_Sphere.CenterRadius.x = center.x;
+	//	m_Sphere.CenterRadius.y = center.y;
+	//	m_Sphere.CenterRadius.z = center.z;
+	//	m_Sphere.CenterRadius.w = sqrtf(max_dist);
 
-		float max_dist = 0;
-		XMVECTOR dist = { 0.0f, 0.0f, 0.0f };
-		for (const auto vertex : vertices) // Calculate maximum distance to centerpoint
-		{
-			dist.m128_f32[0] = center.m128_f32[0] - vertex.Position.x;
-			dist.m128_f32[1] = center.m128_f32[1] - vertex.Position.y;
-			dist.m128_f32[2] = center.m128_f32[2] - vertex.Position.z;
-
-			float curr_dist = dist.m128_f32[0] * dist.m128_f32[0] + dist.m128_f32[1] * dist.m128_f32[1] + dist.m128_f32[2] * dist.m128_f32[2];
-			if (curr_dist > max_dist) {
-				max_dist = curr_dist;
-			}
-
-		}
-
-		m_Sphere.CenterRadius.x = center.m128_f32[0];
-		m_Sphere.CenterRadius.y = center.m128_f32[1];
-		m_Sphere.CenterRadius.z = center.m128_f32[2];
-		m_Sphere.CenterRadius.w = sqrtf(max_dist);
-
-		// setting radius in m_SphereTransformed 'cause it will stay constant
-		m_SphereTransformed.CenterRadius.w = m_Sphere.CenterRadius.w;
-	}
+	//	// setting radius in m_SphereTransformed 'cause it will stay constant
+	//	m_SphereTransformed.CenterRadius.w = m_Sphere.CenterRadius.w;
+	//}
 }
 
 bool BoundingVolume::Intersects(BoundingVolume* other, XMFLOAT3& resolution) noexcept
@@ -118,91 +98,47 @@ bool BoundingVolume::Intersects(BoundingVolume* other, XMFLOAT3& resolution) noe
 void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 {
 	// make some static constants to use every time
-	static const XMFLOAT4 scale = { 1.0f, 1.0f, 1.0f, 1.0f };
-	static const auto vsca = XMLoadFloat4(&scale);
-	static const XMFLOAT4 origin = { 0.0f, 0.0f, 0.0f, 1.0f };
-	static const auto vori = XMLoadFloat4(&origin);
+	static const XMVECTOR scale = { 1.0f, 1.0f, 1.0f, 1.0f };
+	static const XMVECTOR origin = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	// load floats to vectors
 	const auto vpos = XMLoadFloat3(position);
 	const auto vrot = XMLoadFloat4(rotation);
 
-	{// first: OBB
-		// create affine transformation matrix
-		const auto transform = XMMatrixAffineTransformation(vsca, vori, vrot, vpos);
+	const auto transform = XMMatrixAffineTransformation(scale, origin, vrot, vpos);
 
-		const auto obb_max = XMLoadFloat4(&m_OBB.Max);
-		const auto obb_min = XMLoadFloat4(&m_OBB.Min);
+	m_OBB.Transform(m_OBBTransformed, transform);
+	m_AABB.Transform(m_AABBTransformed, transform);
+	m_Sphere.Transform(m_SphereTransformed, transform);
 
-		XMStoreFloat4(&m_OBBTransformed.Max, XMVector4Transform(obb_max, transform));
-		XMStoreFloat4(&m_OBBTransformed.Min, XMVector4Transform(obb_min, transform));
-	}
+	const auto extends = m_AABBTransformed.Extents;
 
-	{// second: AABB
-		// Add new position to m_AABB into m_AABBTransformed for Max
-		m_AABBTransformed.Max.x = m_AABB.Max.x + position->x;
-		m_AABBTransformed.Max.y = m_AABB.Max.y + position->y;
-		m_AABBTransformed.Max.z = m_AABB.Max.z + position->z;
-
-		// Add new position to m_AABB into m_AABBTransformed for Min
-		m_AABBTransformed.Min.x = m_AABB.Min.x + position->x;
-		m_AABBTransformed.Min.y = m_AABB.Min.y + position->y;
-		m_AABBTransformed.Min.z = m_AABB.Min.z + position->z;
-
-		rangeAABB.xbegin = m_AABBTransformed.Min.x;
-		rangeAABB.ybegin = m_AABBTransformed.Min.y;
-		rangeAABB.zbegin = m_AABBTransformed.Min.z;
-		rangeAABB.xend   = m_AABBTransformed.Max.x;
-		rangeAABB.yend   = m_AABBTransformed.Max.y;
-		rangeAABB.zend   = m_AABBTransformed.Max.z;
-	}
-
-	{// third: Sphere
-		// Add new position to m_Sphere into m_SphereTransformed for CenterRadius[x,y,z]
-		m_SphereTransformed.CenterRadius.x = m_Sphere.CenterRadius.x + position->x;
-		m_SphereTransformed.CenterRadius.y = m_Sphere.CenterRadius.y + position->y;
-		m_SphereTransformed.CenterRadius.z = m_Sphere.CenterRadius.z + position->z;
-
-		rangeSphere.xbegin = m_SphereTransformed.CenterRadius.x - m_SphereTransformed.CenterRadius.w * 0.5f;
-		rangeSphere.ybegin = m_SphereTransformed.CenterRadius.y - m_SphereTransformed.CenterRadius.w * 0.5f;
-		rangeSphere.zbegin = m_SphereTransformed.CenterRadius.z - m_SphereTransformed.CenterRadius.w * 0.5f;
-		rangeSphere.xend   = m_SphereTransformed.CenterRadius.x - m_SphereTransformed.CenterRadius.w * 0.5f;
-		rangeSphere.yend   = m_SphereTransformed.CenterRadius.y - m_SphereTransformed.CenterRadius.w * 0.5f;
-		rangeSphere.zend   = m_SphereTransformed.CenterRadius.z - m_SphereTransformed.CenterRadius.w * 0.5f;
-	}
+	rangeAABB.xbegin = m_AABBTransformed.Center.x - extends.x;
+	rangeAABB.ybegin = m_AABBTransformed.Center.y - extends.y;
+	rangeAABB.zbegin = m_AABBTransformed.Center.z - extends.z;
+	rangeAABB.xend   = m_AABBTransformed.Center.x + extends.x;
+	rangeAABB.yend   = m_AABBTransformed.Center.y + extends.y;
+	rangeAABB.zend   = m_AABBTransformed.Center.z + extends.z;
 }
 
-XMFLOAT3&& BoundingVolume::insectCheck(const OBB& other) noexcept
+XMFLOAT3 BoundingVolume::insectCheck(const BoundingOrientedBox& other) noexcept
 {
-	return XMFLOAT3();
+	return { 0.0f, 0.0f, 0.0f };
 }
 
-XMFLOAT3&& BoundingVolume::insectCheck(const AABB& other) noexcept
+XMFLOAT3 BoundingVolume::insectCheck(const BoundingBox& other) noexcept
 {
-	return XMFLOAT3();
-}
-
-XMFLOAT3&& BoundingVolume::insectCheck(const Sphere& other) noexcept
-{
-	const auto combinedRadius = m_SphereTransformed.CenterRadius.w + other.CenterRadius.w;
-	// determine the distance vector between both spheres
-	const auto dist = XMFLOAT3{
-		m_SphereTransformed.CenterRadius.x - other.CenterRadius.x,
-		m_SphereTransformed.CenterRadius.y - other.CenterRadius.y,
-		m_SphereTransformed.CenterRadius.z - other.CenterRadius.z
-	};
-
-	// not a beauty but as previous in update; straight forward for educational purpose
-	const auto sphereDistance = std::sqrtf(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
-
-	// calculating remaining distance of any
-	const auto distance = sphereDistance - combinedRadius;
-
-	if (distance == 0.0f)
-	{ // this is a touch at this moment
-		// here could be a resolution done BUTT we don't know speed of spheres, therefor wait for next simulation tick to resolve
+	if (m_AABBTransformed.Intersects(other))
+	{
+		//m_AABBTransformed.
 	}
-	else if (distance < 0.0f)
+
+	return { 0.0f, 0.0f, 0.0f };
+}
+
+XMFLOAT3 BoundingVolume::insectCheck(const BoundingSphere& other) noexcept
+{
+	if (m_SphereTransformed.Intersects(other))
 	{ // this is an intersection
 		// here we could result in different resolution vectors to resolve depending on the desired effects
 		// since we don't have different masses for the objects aswell and no movement on the y axis
@@ -210,7 +146,19 @@ XMFLOAT3&& BoundingVolume::insectCheck(const Sphere& other) noexcept
 		// a possible plan could be:
 
 		// create a vector with half intersection distance (halfDist, 0.0f, halfDist)
-		return { distance * 0.5f, 0.0f, distance * 0.5f }; // return it
+		const auto combinedRadius = m_SphereTransformed.Radius + other.Radius;
+		// determine the distance vector between both spheres
+		const auto dist = XMFLOAT3{
+			m_SphereTransformed.Center.x - other.Center.x,
+			m_SphereTransformed.Center.y - other.Center.y,
+			m_SphereTransformed.Center.z - other.Center.z
+		};	// not a beauty but as previous in update; straight forward for educational purpose
+		const auto sphereDistance = std::sqrtf(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
+
+		// calculating remaining distance of any
+		const auto distance = (sphereDistance - combinedRadius) * 0.5f;
+
+		return { distance, 0.0f, distance }; // return it
 
 		// resolution code in model update:
 		// for every model

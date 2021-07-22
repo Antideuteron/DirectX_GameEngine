@@ -10,7 +10,7 @@ static constexpr float nearDistance = 0.01f;
 
 XMFLOAT3 Camera::m_Position = { 0.0f, 1.5f, -10.0f };
 XMFLOAT4 Camera::m_Rotation;
-BoundingVolume Camera::m_BoundingVolume;
+BoundingVolume Camera::m_Frustum;
 
 float Camera::speed = 0.05f;
 
@@ -32,46 +32,28 @@ bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 {
 	aspect = static_cast<float>(width) / static_cast<float>(height);
 
-	const auto farCenter  = XMLoadFloat3(&m_Position) - XMVECTOR{ 0.0f, 0.0f, farDistance };
-	const auto nearCenter = XMLoadFloat3(&m_Position) - XMVECTOR{ 0.0f, 0.0f, nearDistance };
+	BoundingFrustum bf;
+	BoundingFrustum::CreateFromMatrix(bf, XMLoadFloat4x4(&GetProjectionMatrix()));
 
-	const float farHeight  = 2.0f * tanf(fov * 0.5f) * farDistance;
-	const float nearHeight = 2.0f * tanf(fov * 0.5f) * nearDistance;
+	std::vector<XMFLOAT3> fp;
+	fp.resize(8);
+	bf.GetCorners(fp.data());
 
-	const float farWidth  = aspect * farHeight;
-	const float nearWidth = aspect * nearHeight;
+	m_FrustumPoints[0] = Vertex(fp[0], {}, {});
+	m_FrustumPoints[1] = Vertex(fp[1], {}, {});
+	m_FrustumPoints[2] = Vertex(fp[2], {}, {});
+	m_FrustumPoints[3] = Vertex(fp[3], {}, {});
 
-	constexpr auto up    = XMVECTOR{ 0.0f, 1.0f, 0.0f };
-	constexpr auto right = XMVECTOR{ 1.0f, 0.0f, 0.0f };
-
-	const auto farTopLeft     = farCenter + up * (farHeight * 0.5f) - right * (farWidth * 0.5f);
-	const auto farTopRight    = farCenter + up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
-	const auto farBottomLeft  = farCenter - up* (farHeight * 0.5f) - right * (farWidth * 0.5f);
-	const auto farBottomRight = farCenter - up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
-
-	const float neg = m_Position.y * (nearHeight * 0.5f) - m_Position.x * (nearWidth * 0.5f);
-	const float pos = m_Position.y * (nearHeight * 0.5f) + m_Position.x * (nearWidth * 0.5f);
-
-	const auto nearTopLeft     = nearCenter + XMVECTOR{ neg, neg, neg };
-	const auto nearTopRight    = nearCenter + XMVECTOR{ pos, pos, pos };
-	const auto nearBottomLeft  = nearCenter - XMVECTOR{ neg, neg, neg };
-	const auto nearBottomRight = nearCenter - XMVECTOR{ pos, pos, pos };
-
-	m_FrustumPoints[0] = Vertex(nearTopLeft);
-	m_FrustumPoints[1] = Vertex(nearBottomLeft);
-	m_FrustumPoints[2] = Vertex(nearBottomRight);
-	m_FrustumPoints[3] = Vertex(nearTopRight);
-
-	m_FrustumPoints[4] = Vertex(farTopLeft);
-	m_FrustumPoints[5] = Vertex(farBottomLeft);
-	m_FrustumPoints[6] = Vertex(farBottomRight);
-	m_FrustumPoints[7] = Vertex(farTopRight);
+	m_FrustumPoints[4] = Vertex(fp[4], {}, {});
+	m_FrustumPoints[5] = Vertex(fp[5], {}, {});
+	m_FrustumPoints[6] = Vertex(fp[6], {}, {});
+	m_FrustumPoints[7] = Vertex(fp[7], {}, {});
 
 	std::vector<Vertex> vertices;
 
 	for (const auto& vertex: m_FrustumPoints) vertices.push_back(vertex);
 
-	m_BoundingVolume = BoundingVolume(vertices);
+	m_Frustum = BoundingVolume(vertices);
 
 	return true;
 }
@@ -94,7 +76,7 @@ void Camera::Update()
 
 	Translate(translation);
 
-	m_BoundingVolume.Update(&m_Position, &m_Rotation);
+	m_Frustum.Update(&m_Position, &m_Rotation);
 }
 
 void Camera::Rotate(int yaw, int pitch)
