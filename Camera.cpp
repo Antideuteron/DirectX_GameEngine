@@ -10,6 +10,9 @@ static constexpr float nearDistance = 0.01f;
 
 XMFLOAT3 Camera::m_Position = { 0.0f, 1.5f, -10.0f };
 XMFLOAT4 Camera::m_Rotation;
+XMFLOAT3 Camera::m_Translation;
+
+BoundingSphere Camera::m_Body;
 BoundingVolume Camera::m_Frustum;
 
 float Camera::speed = 0.05f;
@@ -18,6 +21,9 @@ float	Camera::m_YAW = 0.0f;
 float Camera::m_PITCH = 0.0f;
 
 static float aspect = 0.0f;
+
+BoundingSphere _body;
+
 
 static float wrap_angle(const float angle) noexcept
 {
@@ -29,6 +35,11 @@ static float wrap_angle(const float angle) noexcept
 bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 {
 	aspect = static_cast<float>(width) / static_cast<float>(height);
+
+	ZeroMemory(&_body, sizeof(BoundingSphere));
+
+	_body.Center = { 0.0f, 0.0f, 0.0f };
+	_body.Radius = 0.25f;
 
 	BoundingFrustum bf;
 	BoundingFrustum::CreateFromMatrix(bf, XMLoadFloat4x4(&GetProjectionMatrix()));
@@ -64,6 +75,17 @@ void Camera::Update()
 
 	Translate(translation);
 
+	// make some static constants to use every time
+	static const XMVECTOR scale = { 1.0f, 1.0f, 1.0f, 1.0f };
+	static const XMVECTOR origin = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	// load floats to vectors
+	const auto vpos = XMLoadFloat3(&m_Position);
+	const auto vrot = XMLoadFloat4(&m_Rotation);
+
+	const auto transform = XMMatrixAffineTransformation(scale, origin, vrot, vpos);
+
+	_body.Transform(m_Body, transform);
 	m_Frustum.Update(&m_Position, &m_Rotation);
 }
 
@@ -81,15 +103,15 @@ void Camera::Rotate(int yaw, int pitch)
 void Camera::Translate(XMFLOAT3& translation) noexcept
 {
 	XMStoreFloat3(
-		&translation,
+		&m_Translation,
 		XMVector3Transform(
 			XMLoadFloat3(&translation),
 			XMMatrixRotationRollPitchYaw(m_PITCH, m_YAW, 0.0f) * XMMatrixScaling(speed, speed, speed)
 		)
 	);
 
-	m_Position.x += translation.x;
-	m_Position.z += translation.z;
+	m_Position.x += m_Translation.x;
+	m_Position.z += m_Translation.z;
 }
 
 XMFLOAT4X4 Camera::GetViewMatrix()
@@ -101,7 +123,7 @@ XMFLOAT4X4 Camera::GetViewMatrix()
 	const auto position = XMLoadFloat3(&m_Position);
 	const auto target = position + lookVector;
 
-	XMStoreFloat4x4(&matrix, XMMatrixLookAtLH(position, target, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
+	XMStoreFloat4x4(&matrix, XMMatrixLookAtLH(position, target, { 0.0f, 1.0f, 0.0f, 0.0f }));
 
 	return matrix;
 }

@@ -1,5 +1,7 @@
 #include "BoundingVolume.h"
 
+#include "Camera.hpp"
+
 constexpr const float max_float = std::numeric_limits<float>::max();
 constexpr const float min_float = std::numeric_limits<float>::min();
 
@@ -121,7 +123,28 @@ void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 	rangeAABB.zend   = m_AABBTransformed.Center.z + extends.z;
 }
 
-XMFLOAT3 BoundingVolume::insectCheck(const BoundingOrientedBox& other) noexcept
+void BoundingVolume::SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept
+{
+	const auto& player = Camera::Body();
+
+	for (const auto& model : models)
+	{
+		auto resolution = model->insectCheckOBBSphere(player);
+
+		if (resolution.x != 0.0f || resolution.z != 0.0f)
+		{
+			Log::Info(
+				(std::wstringstream() << "( " << resolution.x << " | " << resolution.y << " | " << resolution.z << " )\n").str()
+			);
+
+			Camera::m_Position.x -= Camera::Translation().x;
+			//Camera::m_Position.y -= Camera::Translation().y;
+			Camera::m_Position.z -= Camera::Translation().z;
+		}
+	}
+}
+
+XMFLOAT3 BoundingVolume::insectCheck(const BoundingOrientedBox& other) const noexcept
 {
 	if (m_OBBTransformed.Intersects(other))
 	{
@@ -131,7 +154,7 @@ XMFLOAT3 BoundingVolume::insectCheck(const BoundingOrientedBox& other) noexcept
 	return { 0.0f, 0.0f, 0.0f };
 }
 
-XMFLOAT3 BoundingVolume::insectCheck(const BoundingBox& other) noexcept
+XMFLOAT3 BoundingVolume::insectCheck(const BoundingBox& other) const noexcept
 {
 	if (m_AABBTransformed.Intersects(other))
 	{
@@ -156,7 +179,96 @@ XMFLOAT3 BoundingVolume::insectCheck(const BoundingBox& other) noexcept
 	return { 0.0f, 0.0f, 0.0f };
 }
 
-XMFLOAT3 BoundingVolume::insectCheck(const BoundingSphere& other) noexcept
+XMFLOAT3 BoundingVolume::insectCheckAABBSphere(const BoundingSphere& sphere) const noexcept // WTF
+{
+	XMVECTOR SphereCenter = XMLoadFloat3(&sphere.Center);
+	XMVECTOR SphereRadius = XMVectorReplicatePtr(&sphere.Radius);
+
+	XMVECTOR BoxCenter = XMLoadFloat3(&m_AABBTransformed.Center);
+	XMVECTOR BoxExtents = XMLoadFloat3(&m_AABBTransformed.Extents);
+
+	XMVECTOR BoxMin = XMVectorSubtract(BoxCenter, BoxExtents);
+	XMVECTOR BoxMax = XMVectorAdd(BoxCenter, BoxExtents);
+
+	// Find the distance to the nearest point on the box.
+	// for each i in (x, y, z)
+	// if (SphereCenter(i) < BoxMin(i)) d2 += (SphereCenter(i) - BoxMin(i)) ^ 2
+	// else if (SphereCenter(i) > BoxMax(i)) d2 += (SphereCenter(i) - BoxMax(i)) ^ 2
+
+	XMVECTOR d = XMVectorZero();
+
+	// Compute d for each dimension.
+	XMVECTOR LessThanMin = XMVectorLess(SphereCenter, BoxMin);
+	XMVECTOR GreaterThanMax = XMVectorGreater(SphereCenter, BoxMax);
+
+	XMVECTOR MinDelta = XMVectorSubtract(SphereCenter, BoxMin);
+	XMVECTOR MaxDelta = XMVectorSubtract(SphereCenter, BoxMax);
+
+	// Choose value for each dimension based on the comparison.
+	d = XMVectorSelect(d, MinDelta, LessThanMin);
+	d = XMVectorSelect(d, MaxDelta, GreaterThanMax);
+
+	// Use a dot-product to square them and sum them together.
+	XMVECTOR d2 = XMVector3Dot(d, d);
+
+	XMFLOAT3 distance;
+	XMStoreFloat3(&distance, XMVectorSubtract(d2, XMVectorMultiply(SphereRadius, SphereRadius)));
+
+	if (XMVector3LessOrEqual(d2, XMVectorMultiply(SphereRadius, SphereRadius)))
+	{
+		return { sqrtf(fabsf(distance.x)), 0.0f, sqrtf(fabsf(distance.z)) };
+	}
+
+	return { 0.0f, 0.0f, 0.0f };
+}
+
+XMFLOAT3 BoundingVolume::insectCheckOBBSphere(const BoundingSphere& sphere) const noexcept
+{
+	XMVECTOR SphereCenter = XMLoadFloat3(&sphere.Center);
+	XMVECTOR SphereRadius = XMVectorReplicatePtr(&sphere.Radius);
+
+	XMVECTOR BoxCenter = XMLoadFloat3(&m_OBBTransformed.Center);
+	XMVECTOR BoxExtents = XMLoadFloat3(&m_OBBTransformed.Extents);
+	XMVECTOR BoxOrientation = XMLoadFloat4(&m_OBBTransformed.Orientation);
+
+	// Transform the center of the sphere to be local to the box.
+	// BoxMin = -BoxExtents
+	// BoxMax = +BoxExtents
+	SphereCenter = XMVector3InverseRotate(XMVectorSubtract(SphereCenter, BoxCenter), BoxOrientation);
+
+	// Find the distance to the nearest point on the box.
+	// for each i in (x, y, z)
+	// if (SphereCenter(i) < BoxMin(i)) d2 += (SphereCenter(i) - BoxMin(i)) ^ 2
+	// else if (SphereCenter(i) > BoxMax(i)) d2 += (SphereCenter(i) - BoxMax(i)) ^ 2
+
+	XMVECTOR d = XMVectorZero();
+
+	// Compute d for each dimension.
+	XMVECTOR LessThanMin = XMVectorLess(SphereCenter, XMVectorNegate(BoxExtents));
+	XMVECTOR GreaterThanMax = XMVectorGreater(SphereCenter, BoxExtents);
+
+	XMVECTOR MinDelta = XMVectorAdd(SphereCenter, BoxExtents);
+	XMVECTOR MaxDelta = XMVectorSubtract(SphereCenter, BoxExtents);
+
+	// Choose value for each dimension based on the comparison.
+	d = XMVectorSelect(d, MinDelta, LessThanMin);
+	d = XMVectorSelect(d, MaxDelta, GreaterThanMax);
+
+	// Use a dot-product to square them and sum them together.
+	XMVECTOR d2 = XMVector3Dot(d, d);
+
+	XMFLOAT3 distance;
+	XMStoreFloat3(&distance, XMVectorSubtract(d2, XMVectorMultiply(SphereRadius, SphereRadius)));
+
+	if (XMVector3LessOrEqual(d2, XMVectorMultiply(SphereRadius, SphereRadius)))
+	{
+		return { sqrtf(fabsf(distance.x)), 0.0f, sqrtf(fabsf(distance.z)) };
+	}
+
+	return { 0.0f, 0.0f, 0.0f };
+}
+
+XMFLOAT3 BoundingVolume::insectCheck(const BoundingSphere& other) const noexcept
 {
 	if (m_SphereTransformed.Intersects(other))
 	{ // this is an intersection
@@ -176,7 +288,7 @@ XMFLOAT3 BoundingVolume::insectCheck(const BoundingSphere& other) noexcept
 		const auto sphereDistance = std::sqrtf(dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
 
 		// calculating remaining distance of any
-		const auto distance = (sphereDistance - combinedRadius) * 0.5f;
+		const auto distance = (combinedRadius - sphereDistance) * 0.5f;
 
 		return { distance, 0.0f, distance }; // return it
 

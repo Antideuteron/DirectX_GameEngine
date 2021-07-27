@@ -25,7 +25,7 @@ void FrustumCull(const std::vector<Model*>& models, std::vector<Model*>& toRende
 	{
 		XMFLOAT3 resolution;
 
-		if (Camera::Frustum().Intersects(model->m_BoundingVolume, resolution)) toRender.push_back(model);
+		if (Camera::Frustum().Intersects(&model->m_BoundingVolume, resolution)) toRender.push_back(model);
 	}
 
 	BoundingVolume::BVTT() = BVTT;

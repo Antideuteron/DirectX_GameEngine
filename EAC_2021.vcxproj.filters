@@ -90,6 +90,9 @@
     <ClInclude Include="FrustumCuller.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="SweepNPrune.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -162,6 +165,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="FrustumCuller.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="SweepNPrune.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

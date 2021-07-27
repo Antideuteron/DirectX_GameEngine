@@ -32,20 +32,25 @@ public:
 
 	static inline BoundingVolumeTestType& BVTT(void) noexcept { return TestType; }
 
-	XMFLOAT3 insectCheck(const BoundingBox&) noexcept;
-	XMFLOAT3 insectCheck(const BoundingSphere&) noexcept;
-	XMFLOAT3 insectCheck(const BoundingOrientedBox&) noexcept;
+	XMFLOAT3 insectCheck(const BoundingBox&) const noexcept;
+	XMFLOAT3 insectCheck(const BoundingSphere&) const noexcept;
+	XMFLOAT3 insectCheck(const BoundingOrientedBox&) const noexcept;
+	XMFLOAT3 insectCheckAABBSphere(const BoundingSphere& sphere) const noexcept;
+	XMFLOAT3 insectCheckOBBSphere(const BoundingSphere& sphere) const noexcept;
 
-private:
 	BoundingBox m_AABB;
 	BoundingSphere m_Sphere;
 	BoundingOrientedBox m_OBB;
-
 	BoundingBox m_AABBTransformed;
 	BoundingSphere m_SphereTransformed;
 	BoundingOrientedBox m_OBBTransformed;
-	
 	Range rangeAABB;
+
+public:
+	static void SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept;
+
+private:
+	
 	
 	static BoundingVolumeTestType TestType;
 

@@ -1,6 +1,7 @@
 #include "LevelRenderer.h"
 
 #include "LevelLoader.h"
+#include "SweepNPrune.hpp"
 #include "FrustumCuller.hpp"
 
 bool LevelRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width, int height)
@@ -79,9 +80,9 @@ bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Gra
       switch (cell)
       {
       case 0: m_models.push_back(new Model("wall.obj", "wall.png", position, rotation)); break;
-      case 1: m_models.push_back(new Model("floor.obj", "floor.png", position, rotation)); break;
+      case 1: m_models.push_back(new Model("floor.obj", "floor.png", position, rotation, false)); break;
       case 2:
-        m_models.push_back(new Model("floor.obj", "floor.png", position, rotation));
+        m_models.push_back(new Model("floor.obj", "floor.png", position, rotation, false));
         m_models.push_back(new Model("barrier.obj", "barrier.png", position, { 0.0f, 0.25f, 0.0f, 1.0f }));
         break;
       default:break;
@@ -140,7 +141,20 @@ bool LevelRenderer::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& comma
 
 void LevelRenderer::Update(int frameIndex)
 {
-  for (auto& model : m_models) model->Update(frameIndex);
+  std::vector<BoundingVolume*> solids;
+  for (auto& model : m_models)
+  {
+    model->Update(frameIndex);
+
+    if (model->isSolid()) solids.push_back(&model->m_BoundingVolume);
+  }
+
+  if (narrow(broad(solids)))
+  {
+    Camera::m_Position.x -= Camera::Translation().x;
+    //Camera::m_Position.y -= Camera::Translation().y;
+    Camera::m_Position.z -= Camera::Translation().z;
+  }
 }
 
 void LevelRenderer::Release()
@@ -218,7 +232,7 @@ void LevelRenderer::Render(ComPtr<ID3D12GraphicsCommandList>& commandList) noexc
   const auto end = std::chrono::system_clock::now();
   const std::chrono::duration<double> diff = (end - start);
 
-  Log::Info((std::wstringstream() << L"Culling: " << diff.count() * 1000.0 << "ms - " << renderables.size() << " of " << m_models.size() << " models visible").str());
+  //Log::Info((std::wstringstream() << L"Culling: " << diff.count() * 1000.0 << "ms - " << renderables.size() << " of " << m_models.size() << " models visible").str());
 
   for (auto& model : renderables) model->PopulateCommandList(commandList, nullptr, 0);
 }
