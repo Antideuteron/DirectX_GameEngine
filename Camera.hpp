@@ -20,7 +20,7 @@ public:
   static XMFLOAT4X4 GetViewMatrix();
   static XMFLOAT4X4 GetProjectionMatrix();
 
-  static inline BoundingSphere& Body(void) noexcept { return m_Body; }
+  static inline BoundingVolume& Body(void) noexcept { return m_Body; }
   static inline BoundingVolume& Frustum(void) noexcept { return m_Frustum; }
   static inline XMFLOAT3& Translation(void) noexcept { return m_Translation; }
 
@@ -36,7 +36,7 @@ private:
   static float speed;
   static float m_YAW, m_PITCH;
 
-  static BoundingSphere m_Body;
+  static BoundingVolume m_Body;
   static BoundingVolume m_Frustum;
-
+  
 };

@@ -1,23 +1,12 @@
 #pragma once
 
-struct Range
-{
-	float xbegin;
-	float xend;
-	float ybegin;
-	float yend;
-	float zbegin;
-	float zend;
-
-	Range(void) noexcept = default;
-	~Range(void) noexcept = default;
-};
+class Model;
 
 enum class BoundingVolumeTestType
 {
 	OBB,
 	AABB,
-	Sphere
+	Sphere,
 };
 
 class BoundingVolume
@@ -44,10 +33,17 @@ public:
 	BoundingBox m_AABBTransformed;
 	BoundingSphere m_SphereTransformed;
 	BoundingOrientedBox m_OBBTransformed;
-	Range rangeAABB;
 
 public:
 	static void SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept;
+
+	static BoundingVolumeTestType CullingUpdate(void) noexcept;
+	static void FrustumCull(const std::vector<Model*>& models, std::vector<Model*>&) noexcept;
+
+
+	static std::vector<BoundingVolume*> broad(const std::vector<BoundingVolume*>& models) noexcept;
+	static bool narrow(const std::vector<BoundingVolume*>& models) noexcept;
+	static inline bool SweepNPrune(const std::vector<BoundingVolume*>& models) noexcept { return narrow(broad(models)); }
 
 private:
 	

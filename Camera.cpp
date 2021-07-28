@@ -12,7 +12,7 @@ XMFLOAT3 Camera::m_Position = { 0.0f, 1.5f, -10.0f };
 XMFLOAT4 Camera::m_Rotation;
 XMFLOAT3 Camera::m_Translation;
 
-BoundingSphere Camera::m_Body;
+BoundingVolume Camera::m_Body;
 BoundingVolume Camera::m_Frustum;
 
 float Camera::speed = 0.05f;
@@ -22,31 +22,26 @@ float Camera::m_PITCH = 0.0f;
 
 static float aspect = 0.0f;
 
-BoundingSphere _body;
-
-
-static float wrap_angle(const float angle) noexcept
-{
-	if (angle < -XM_PI) return angle + XM_PI + XM_PI;
-	if (angle > XM_PI) return angle - XM_PI - XM_PI;
-	return angle;
-}
+BoundingFrustum _Frustum;
 
 bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 {
 	aspect = static_cast<float>(width) / static_cast<float>(height);
 
-	ZeroMemory(&_body, sizeof(BoundingSphere));
+	m_Body = BoundingVolume(
+		std::vector<Vertex> {
+			{ { -0.25f, -0.85f, -0.25f }, {}, {} },
+			{ {  0.25f,  0.85f,  0.25f }, {}, {} }
+		}
+	);
 
-	_body.Center = { 0.0f, 0.0f, 0.0f };
-	_body.Radius = 0.25f;
+	m_Body.m_Sphere.Center = { 0.0f, 0.0f, 0.0f };
+	m_Body.m_Sphere.Radius = 0.25f;
 
-	BoundingFrustum bf;
-	BoundingFrustum::CreateFromMatrix(bf, XMLoadFloat4x4(&GetProjectionMatrix()));
+	BoundingFrustum::CreateFromMatrix(_Frustum, XMLoadFloat4x4(&GetProjectionMatrix()));
 
-	std::vector<XMFLOAT3> fp;
-	fp.resize(8);
-	bf.GetCorners(fp.data());
+	std::array<XMFLOAT3, 8> fp;
+	_Frustum.GetCorners(fp.data());
 
 	std::vector<Vertex> vertices;
 
@@ -85,7 +80,7 @@ void Camera::Update()
 
 	const auto transform = XMMatrixAffineTransformation(scale, origin, vrot, vpos);
 
-	_body.Transform(m_Body, transform);
+	m_Body.Update(&m_Position, &m_Rotation);
 	m_Frustum.Update(&m_Position, &m_Rotation);
 }
 

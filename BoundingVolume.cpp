@@ -1,82 +1,19 @@
 #include "BoundingVolume.h"
 
+#include "Model.h"
 #include "Camera.hpp"
+#include "Keyboard.hpp"
 
 constexpr const float max_float = std::numeric_limits<float>::max();
 constexpr const float min_float = std::numeric_limits<float>::min();
 
-BoundingVolumeTestType BoundingVolume::TestType = BoundingVolumeTestType::Sphere;
+BoundingVolumeTestType BoundingVolume::TestType = BoundingVolumeTestType::AABB;
 
 BoundingVolume::BoundingVolume(std::vector<Vertex>& vertices) noexcept
 {
 	BoundingBox::CreateFromPoints(m_AABB, vertices.size(), (XMFLOAT3*)vertices.data(), sizeof(Vertex));
 	BoundingSphere::CreateFromPoints(m_Sphere, vertices.size(), (XMFLOAT3*)vertices.data(), sizeof(Vertex));
 	BoundingOrientedBox::CreateFromPoints(m_OBB, vertices.size(), (XMFLOAT3*)vertices.data(), sizeof(Vertex));
-
-	//// initializes with extremes
-	//XMFLOAT3 min = { max_float, max_float, max_float };
-	//XMFLOAT3 max = { min_float, min_float, min_float };
-
-	//for (const auto vertex : vertices) // I think this is magic
-	//{
-	//	// check component-wise for lower bound
-	//	if (vertex.Position.x < min.x) min.x = vertex.Position.x;
-	//	if (vertex.Position.y < min.y) min.y = vertex.Position.y;
-	//	if (vertex.Position.z < min.z) min.z = vertex.Position.z;
-
-	//	// check component-wise for upper bound
-	//	if (vertex.Position.x > max.x) max.x = vertex.Position.x;
-	//	if (vertex.Position.y > max.y) max.y = vertex.Position.y;
-	//	if (vertex.Position.z > max.z) max.z = vertex.Position.z;
-	//}
-
-	//// with this min/max we can determine the AABB and the sphere
-
-	////For the box, set:
-	//m_AABB = { min, max };
-
-	////For the sphere Version 2.0 (smaller sphere):
-	//{ 
-	//	// first: determining the center point
-	//	XMFLOAT3 center = { 0.0f, 0.0f, 0.0f };
-	//	float n = 1.0f / static_cast<float>(vertices.size());
-
-	//	for (const auto& vertex : vertices) // Sum up all vertex vectors
-	//	{
-	//		center.x += vertex.Position.x;
-	//		center.y += vertex.Position.y;
-	//		center.z += vertex.Position.z;
-	//	}
-
-	//	//Divide by n to find center
-	//	center.x *= n;
-	//	center.y *= n;
-	//	center.z *= n;
-
-	//	float max_dist = 0.0f;
-	//	for (const auto& vertex : vertices) // Calculate maximum distance to center point
-	//	{
-	//		XMFLOAT3 dist = {
-	//			center.x - vertex.Position.x,
-	//			center.y - vertex.Position.y,
-	//			center.z - vertex.Position.z
-	//		};
-
-	//		float curr_dist = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-
-	//		if (curr_dist > max_dist) {
-	//			max_dist = curr_dist;
-	//		}
-	//	}
-
-	//	m_Sphere.CenterRadius.x = center.x;
-	//	m_Sphere.CenterRadius.y = center.y;
-	//	m_Sphere.CenterRadius.z = center.z;
-	//	m_Sphere.CenterRadius.w = sqrtf(max_dist);
-
-	//	// setting radius in m_SphereTransformed 'cause it will stay constant
-	//	m_SphereTransformed.CenterRadius.w = m_Sphere.CenterRadius.w;
-	//}
 }
 
 bool BoundingVolume::Intersects(BoundingVolume* other, XMFLOAT3& resolution) noexcept
@@ -112,33 +49,18 @@ void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 	m_OBB.Transform(m_OBBTransformed, transform);
 	m_AABB.Transform(m_AABBTransformed, transform);
 	m_Sphere.Transform(m_SphereTransformed, transform);
-
-	const auto extends = m_AABBTransformed.Extents;
-
-	rangeAABB.xbegin = m_AABBTransformed.Center.x - extends.x;
-	rangeAABB.ybegin = m_AABBTransformed.Center.y - extends.y;
-	rangeAABB.zbegin = m_AABBTransformed.Center.z - extends.z;
-	rangeAABB.xend   = m_AABBTransformed.Center.x + extends.x;
-	rangeAABB.yend   = m_AABBTransformed.Center.y + extends.y;
-	rangeAABB.zend   = m_AABBTransformed.Center.z + extends.z;
 }
 
 void BoundingVolume::SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept
 {
-	const auto& player = Camera::Body();
+	auto* player = &Camera::Body();
 
 	for (const auto& model : models)
 	{
-		auto resolution = model->insectCheckOBBSphere(player);
-
-		if (resolution.x != 0.0f || resolution.z != 0.0f)
+		XMFLOAT3 resolution;
+		if (model->Intersects(player, resolution))
 		{
-			Log::Info(
-				(std::wstringstream() << "( " << resolution.x << " | " << resolution.y << " | " << resolution.z << " )\n").str()
-			);
-
 			Camera::m_Position.x -= Camera::Translation().x;
-			//Camera::m_Position.y -= Camera::Translation().y;
 			Camera::m_Position.z -= Camera::Translation().z;
 		}
 	}
@@ -301,4 +223,72 @@ XMFLOAT3 BoundingVolume::insectCheck(const BoundingSphere& other) const noexcept
 
 	// no intersection
 	return { 0.0f, 0.0f, 0.0f };
+}
+
+static BoundingVolumeTestType s_Type = BoundingVolumeTestType::AABB;
+
+BoundingVolumeTestType BoundingVolume::CullingUpdate(void) noexcept
+{
+	BoundingVolumeTestType type = s_Type;
+
+	if (Keyboard::IsPressed(sc_1)) type = BoundingVolumeTestType::Sphere;
+	else if (Keyboard::IsPressed(sc_2)) type = BoundingVolumeTestType::AABB;
+	else if (Keyboard::IsPressed(sc_3)) type = BoundingVolumeTestType::OBB;
+
+	return type;
+}
+
+void BoundingVolume::FrustumCull(const std::vector<Model*>& models, std::vector<Model*>& toRender) noexcept
+{
+	s_Type = CullingUpdate();
+
+	const auto BVTT = BoundingVolume::BVTT();
+	BoundingVolume::BVTT() = s_Type;
+
+	for (auto& model : models)
+	{
+		XMFLOAT3 resolution;
+
+		if (Camera::Frustum().Intersects(&model->m_BoundingVolume, resolution)) toRender.push_back(model);
+	}
+
+	BoundingVolume::BVTT() = BVTT;
+}
+
+std::vector<BoundingVolume*> BoundingVolume::broad(const std::vector<BoundingVolume*>& models) noexcept
+{
+	std::vector<BoundingVolume*> intersections;
+	const auto start = std::chrono::system_clock::now();
+
+	for (const auto model : models) if (model->m_AABBTransformed.Intersects(Camera::Body().m_SphereTransformed)) intersections.push_back(model);
+
+	const auto end = std::chrono::system_clock::now();
+	const std::chrono::duration<double> diff = (end - start);
+
+	Log::Info((std::wstringstream() << L"Broad Phase: " << diff.count() * 1000.0 << " ms - " << models.size() << " models tested - " << (intersections.size() != 0 ? "COLLISION" : "NO COLLISION")).str());
+
+	return intersections;
+}
+
+bool BoundingVolume::narrow(const std::vector<BoundingVolume*>& models) noexcept
+{
+	bool result = false;
+	const auto start = std::chrono::system_clock::now();
+
+	if (models.size() == 0) return result;
+
+	for (const auto model : models)
+	{
+		if (model->m_OBBTransformed.Intersects(Camera::Body().m_SphereTransformed))
+		{
+			result = true;
+		}
+	}
+
+	const auto end = std::chrono::system_clock::now();
+	const std::chrono::duration<double> diff = (end - start);
+
+	Log::Info((std::wstringstream() << L"NarrowPhase: " << diff.count() * 1000.0 << " ms - " << models.size() << " models tested").str());
+
+	return result;
 }

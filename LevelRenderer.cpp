@@ -1,8 +1,7 @@
 #include "LevelRenderer.h"
 
+#include "Camera.hpp"
 #include "LevelLoader.h"
-#include "SweepNPrune.hpp"
-#include "FrustumCuller.hpp"
 
 bool LevelRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width, int height)
 {
@@ -67,8 +66,9 @@ bool LevelRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width,
 
 bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12GraphicsCommandList>& commandList, ComPtr<ID3D12CommandAllocator>& commandAllocator, int width, int height)
 {
-  static const XMFLOAT4 rotation = { 0.0f, 0.0f, 0.0f, 1.0f };
-
+  const XMFLOAT4 rotation = { 0.0f, 0.0f, 0.0f, 1.0f };
+  XMFLOAT4 degree45;
+  XMStoreFloat4(&degree45, XMQuaternionRotationAxis({ 0, 1, 0 }, XMConvertToRadians(45.0f)));
   const auto level = LevelLoader::Load("level1.txt");
 
   XMFLOAT3 position = { 4.0f, 0.0f, 3.0f };
@@ -83,7 +83,7 @@ bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Gra
       case 1: m_models.push_back(new Model("floor.obj", "floor.png", position, rotation, false)); break;
       case 2:
         m_models.push_back(new Model("floor.obj", "floor.png", position, rotation, false));
-        m_models.push_back(new Model("barrier.obj", "barrier.png", position, { 0.0f, 0.25f, 0.0f, 1.0f }));
+        m_models.push_back(new Model("barrier.obj", "barrier.png", position, degree45));
         break;
       default:break;
       }
@@ -96,9 +96,11 @@ bool LevelRenderer::LoadResources(ComPtr<ID3D12Device>& device, ComPtr<ID3D12Gra
   }
 
   commandList->Reset(commandAllocator.Get(), m_pipelineState.Get());
+
   if (!CreateDepthStencilBuffer(device, commandList, width, height)) return false;
 
   for (auto& model : m_models) model->LoadResources(device, commandList);
+
   commandList->Close();
 
   return true;
@@ -149,10 +151,10 @@ void LevelRenderer::Update(int frameIndex)
     if (model->isSolid()) solids.push_back(&model->m_BoundingVolume);
   }
 
-  if (narrow(broad(solids)))
+  if (BoundingVolume::SweepNPrune(solids))
   {
+    Log::Info(L"Sweep&Prune Narrow Phase COLLISION");
     Camera::m_Position.x -= Camera::Translation().x;
-    //Camera::m_Position.y -= Camera::Translation().y;
     Camera::m_Position.z -= Camera::Translation().z;
   }
 }
@@ -228,11 +230,11 @@ void LevelRenderer::Render(ComPtr<ID3D12GraphicsCommandList>& commandList) noexc
 {
   std::vector<Model*> renderables;
   const auto start = std::chrono::system_clock::now();
-  FrustumCull(m_models, renderables);
+  BoundingVolume::FrustumCull(m_models, renderables);
   const auto end = std::chrono::system_clock::now();
   const std::chrono::duration<double> diff = (end - start);
 
-  //Log::Info((std::wstringstream() << L"Culling: " << diff.count() * 1000.0 << "ms - " << renderables.size() << " of " << m_models.size() << " models visible").str());
+  Log::Info((std::wstringstream() << L"Culling: " << diff.count() * 1000.0 << "ms - " << renderables.size() << " of " << m_models.size() << " models visible").str());
 
   for (auto& model : renderables) model->PopulateCommandList(commandList, nullptr, 0);
 }

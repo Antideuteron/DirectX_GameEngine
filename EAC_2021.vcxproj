@@ -178,7 +178,6 @@
   <ItemGroup>
     <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Camera.hpp" />
-    <ClInclude Include="FrustumCuller.hpp" />
     <ClInclude Include="Keyboard.hpp" />
     <ClInclude Include="LevelLoader.h" />
     <ClInclude Include="LevelRenderer.h" />
@@ -206,7 +205,6 @@
   <ItemGroup>
     <ClCompile Include="BoundingVolume.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="FrustumCuller.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="LevelLoader.cpp" />
     <ClCompile Include="LevelRenderer.cpp" />

@@ -23,7 +23,7 @@ bool Graphics::Init(HWND hwnd, int width, int height)
   if (!DeviceManager::CreateSwapChain(hwnd, m_factory, m_commandQueue, width, height, m_swapChain, m_frameIndex)) return false;
   if (!DeviceManager::CreateRenderTargets(m_device, m_swapChain, m_renderTargets.data(), m_rtvHeap, m_rtvDescriptorSize)) return false;
 
-  m_renderer = new LevelRenderer();
+  m_renderer = new ImageRenderer();
 
   Camera::Init(width, height);
 
@@ -34,7 +34,7 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 
   m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
-  const UINT64 fence = m_fenceValue;
+  UINT64 fence = m_fenceValue;
 
   if (FAILED(m_commandQueue->Signal(m_fence.Get(), fence))) return false;
   m_fenceValue++;
@@ -43,6 +43,23 @@ bool Graphics::Init(HWND hwnd, int width, int height)
 
   m_loaded = true;
   m_resize = false;
+
+  Render();
+
+  delete m_renderer;
+  m_renderer = new LevelRenderer();
+
+  if (!m_renderer->CreatePipelineState(m_device, width, height)) return false;
+  if (!m_renderer->LoadResources(m_device, m_commandList, m_commandAllocator, width, height)) return false;
+
+  m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+  //fence = m_fenceValue;
+
+  if (FAILED(m_commandQueue->Signal(m_fence.Get(), fence))) return false;
+  m_fenceValue++;
+
+  if (!Sync()) return false;
 
   return true;
 }

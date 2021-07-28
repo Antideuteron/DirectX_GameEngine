@@ -33,7 +33,7 @@ bool ImageRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width,
   psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
   psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
   psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-  psoDesc.RasterizerState.FrontCounterClockwise = true;
+  psoDesc.RasterizerState.FrontCounterClockwise = false;
   psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
   psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
   psoDesc.SampleMask = UINT_MAX;
@@ -106,8 +106,8 @@ bool ImageRenderer::PopulateCommandList(ComPtr<ID3D12GraphicsCommandList>& comma
   commandList->SetGraphicsRootDescriptorTable(1, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
 
-  const float clearColor[] = { 0.502f, 0.729f, 0.141f, 1.0f };
-  //const float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+  //const float clearColor[] = { 0.502f, 0.729f, 0.141f, 1.0f };
+  const float clearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
   commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
   commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
@@ -133,7 +133,7 @@ void ImageRenderer::Update(int frameIndex)
   const XMMATRIX v = XMLoadFloat4x4(&Camera::GetViewMatrix());
   const XMMATRIX p = XMLoadFloat4x4(&Camera::GetProjectionMatrix());
 
-  XMStoreFloat4x4(&m_constantBuffer.wvpMat, m * v * p);
+  XMStoreFloat4x4(&m_constantBuffer.wvpMat, XMMatrixIdentity());
 }
 
 void ImageRenderer::Release()
