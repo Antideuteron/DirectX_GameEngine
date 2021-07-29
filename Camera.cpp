@@ -30,8 +30,8 @@ bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 
 	m_Body = BoundingVolume(
 		std::vector<Vertex> {
-			{ { -0.25f, -0.85f, -0.25f }, {}, {} },
-			{ {  0.25f,  0.85f,  0.25f }, {}, {} }
+			{ { -0.25f, -1.5f, -0.25f }, {}, {} },
+			{ {  0.25f,  0.2f,  0.25f }, {}, {} }
 		}
 	);
 

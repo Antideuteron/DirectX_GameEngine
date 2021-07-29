@@ -196,7 +196,6 @@
     <ClInclude Include="ObjLoader2.h" />
     <ClInclude Include="QuadRenderer.h" />
     <ClInclude Include="Renderer.h" />
-    <ClInclude Include="SweepNPrune.hpp" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="TriangleRenderer.h" />
     <ClInclude Include="resource.h" />
@@ -223,7 +222,6 @@
     <ClCompile Include="ObjLoader2.cpp" />
     <ClCompile Include="QuadRenderer.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="SweepNPrune.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="TriangleRenderer.cpp" />
     <ClCompile Include="stdafx.cpp">

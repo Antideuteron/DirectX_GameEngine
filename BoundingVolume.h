@@ -21,11 +21,11 @@ public:
 
 	static inline BoundingVolumeTestType& BVTT(void) noexcept { return TestType; }
 
-	XMFLOAT3 insectCheck(const BoundingBox&) const noexcept;
-	XMFLOAT3 insectCheck(const BoundingSphere&) const noexcept;
-	XMFLOAT3 insectCheck(const BoundingOrientedBox&) const noexcept;
-	XMFLOAT3 insectCheckAABBSphere(const BoundingSphere& sphere) const noexcept;
-	XMFLOAT3 insectCheckOBBSphere(const BoundingSphere& sphere) const noexcept;
+	bool insectCheck(const BoundingBox&, XMFLOAT3&) const noexcept;
+	bool insectCheck(const BoundingSphere&, XMFLOAT3&) const noexcept;
+	bool insectCheck(const BoundingOrientedBox&, XMFLOAT3&) const noexcept;
+	bool insectCheckAABBSphere(const BoundingSphere& sphere, XMFLOAT3&) const noexcept;
+	bool insectCheckOBBSphere(const BoundingSphere& sphere, XMFLOAT3&) const noexcept;
 
 	BoundingBox m_AABB;
 	BoundingSphere m_Sphere;
