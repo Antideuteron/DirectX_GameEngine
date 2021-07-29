@@ -35,9 +35,8 @@ public:
 	BoundingOrientedBox m_OBBTransformed;
 
 public:
-	static void SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept;
+	static bool SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept;
 
-	static BoundingVolumeTestType CullingUpdate(void) noexcept;
 	static void FrustumCull(const std::vector<Model*>& models, std::vector<Model*>&) noexcept;
 
 
@@ -46,8 +45,9 @@ public:
 	static inline bool SweepNPrune(const std::vector<BoundingVolume*>& models) noexcept { return narrow(broad(models)); }
 
 private:
-	
-	
+	static BoundingVolumeTestType CullingUpdate(void) noexcept;
+
+
 	static BoundingVolumeTestType TestType;
 
 	friend class Model;

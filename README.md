@@ -7,6 +7,112 @@ Paul Konstantin Christof
 Vytautas Hermann  
 Frank Kevin Zey
 
+# TODOs
+- [ ] Implement keys `4`, `5`, `6` according to table below.
+- [ ] Rename all Headers to match `*.h` instead of `*.hpp`
+- [ ] Test everything over again to ensure requirements stated as follows
+```
+- 50% Implementierung des Image Renderers incl. laden der Modelldatei. (✓)
+- 20% Laden des Levels und der Modelle. Rendern der kompletten Szene. Navigation mit Maus und Tastatur. Anzeigen Splash - Screens beim Laden. Lauffähiges Spiel. README. Kommentierter Code.
+- 10% Culling + Bounding Spheres
+- 10% Broad Phase + AABBs
+- 10% Narrow Phase + OBB
+```
+
+## What's not implemented but would have been nice
+The `Collision Resolution` is implemented as stated in
+
+**Aufgabe 11 Teil 3 Paragraph 3**:
+```
+Implementieren Sie eine Kollisionsauflösung. Statt auszugeben ob eine Kollision
+vorliegt soll nun die Kamera bei Bedarf wieder Rückwärts bewegt werden damit der
+Spieler das Gefühl hat nicht durch Wände laufen zu können.
+```
+Therefor a smooth running along the walls isn't given.
+
+## Known *Bugs*
+When colliding with the *barrier* object and lokking down/up, the player can move
+towards its center because the rotation of the camera is translated onto the OBB
+Volume.  
+When lokking down/up slows down movement speed.
+
+## Controls
+| Key      | Effect       |
+|----------|--------------|
+| `W`      | Move forward |
+| `A`      | Move left    |
+| `S`      | Move back    |
+| `D`      | Move right   |
+| `LShift` | Move Faster  |
+| `LCtrl`  | Move Slower  |
+
+| Key | Test Instance                          |
+|-----|----------------------------------------|
+|     | *Will be used for Frustum Culling*     |
+|-----|----------------------------------------|
+| `1` | `BoundingSphere`                       |
+| `2` | `BoundingBox`                          |
+| `3` | `BoundingOrientedBox`                  |
+|-----|----------------------------------------|
+|     | *Will be used for Collision Detection* |
+|-----|----------------------------------------|
+| `4` | `BoundingSphere`                       |
+| `5` | `BoundingBox`                          |
+| `6` | `BoundingOrientedBox`                  |
+|-----|----------------------------------------|
+
+## HowTo: Testing the BoundingVolume class
+To change what bounding volume implementation the `BoundingVolume` class
+uses you have to use the provided enum `BoundingVolumeTestType` like
+this to use an OBB for example:
+```c++
+BoundingVolume::BVTT() = BoundingVolumeTestType::OBB;
+```
+
+The keys `1`, `2`, `3` changes only the behaviour for `Frustum Culling`.  
+The keys `4`, `5`, `6` changes the behaviour for `Collision Detection`.
+
+Since `Broad Phase` and `Narrow Phase` are implemented using `AABB` and `OBB` respectively,
+testing can be performed with the function:
+```c++
+static bool BoundingVolume::SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept;
+```
+The function needs a `vector` of `BoundingVolume` pointer to test against the camera. The concrete
+`BoundingVolume` can be chosen by the keys `4`, `5`, `6`.
+
+The `Camera` class needs to have a function similar like this:
+```c++
+static inline BoundingVolume& Body(void) noexcept { return m_Body; }
+```
+`m_Body` at this case represents the `BoundingVolume` emulating the players body.
+
+## Integrating the `BoundingVolume` class
+To integrate the `BoundingVolume` class the `BoundingVolume.h` and `BoundingVolume.cpp` have to be included to the
+project. The `BoundingVolume`s `Update` function needs to be called inside the `Model::Update` function after updating
+the model itself.  
+`Broad Phase` and `Narrow Phase` can calls separatly by calling either
+```c++
+static std::vector<BoundingVolume*> broad(const std::vector<BoundingVolume*>& models) noexcept;
+```
+or
+```c++
+static bool narrow(const std::vector<BoundingVolume*>& models) noexcept;
+```
+Notice that those two function test the given `BoundingVolume`s against the `Camera`, since the `Camera` is the
+only dynamic 'object' in our scene!  
+
+The `Camera` class needs to have a function similar like this:
+```c++
+static inline BoundingVolume& Body(void) noexcept { return m_Body; }
+```
+`m_Body` at this case represents the `BoundingVolume` emulating the players body.
+
+The function `SweepNPrune` defined like this
+```c++
+static inline bool SweepNPrune(const std::vector<BoundingVolume*>& models) noexcept { return narrow(broad(models)); }
+```
+tests every given `BoundingVolume` only against the camera for the reason explained above.
+
 ## Frustum Culling
 ```
 Windows 10 Version 10.0.19043 Build 19043
@@ -40,15 +146,5 @@ The number of possible visible objects with `BoundingBox` is smaller, therefor a
 higher framerate was observed and therefor `BoundingBox` is set to be the engines
 default frustum culling test instance.
 
-During runtime the frustum culling test instances can be switch by pressing
-| Key | Test Instance         |
-|-----|-----------------------|
-| `1` | `BoundingSphere`      |
-| `2` | `BoundingBox`         |
-| `3` | `BoundingOrientedBox` |
-
-## Broad Phase Collision Detection
-
-
-## Narrow Phase Collision Detection
-
+During runtime the frustum culling test instances can be switch as shown on the table
+above.

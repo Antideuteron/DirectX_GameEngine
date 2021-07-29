@@ -46,19 +46,13 @@ void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 	m_Sphere.Transform(m_SphereTransformed, transform);
 }
 
-void BoundingVolume::SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept
+bool BoundingVolume::SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept
 {
 	auto* player = &Camera::Body();
 
-	for (const auto& model : models)
-	{
-		XMFLOAT3 resolution;
-		if (model->Intersects(player, resolution))
-		{
-			Camera::m_Position.x -= Camera::Translation().x;
-			Camera::m_Position.z -= Camera::Translation().z;
-		}
-	}
+  XMFLOAT3 resolution;
+
+	for (const auto& model : models) return model->Intersects(player, resolution);
 }
 
 bool BoundingVolume::insectCheck(const BoundingOrientedBox& other, XMFLOAT3& resolution) const noexcept
@@ -84,7 +78,7 @@ bool BoundingVolume::insectCheck(const BoundingOrientedBox& other, XMFLOAT3& res
 	//
 	// a(u) = axes of A = (1,0,0), (0,1,0), (0,0,1)
 	// b(u) = axes of B relative to A = (r00,r10,r20), (r01,r11,r21), (r02,r12,r22)
-	//  
+	//
 	// For each possible separating axis l:
 	//   d(A) = sum (for i = u,v,w) h(A)(i) * abs( a(i) dot l )
 	//   d(B) = sum (for i = u,v,w) h(B)(i) * abs( b(i) dot l )
