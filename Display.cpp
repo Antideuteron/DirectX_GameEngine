@@ -1,8 +1,8 @@
-#include "Display.hpp"
+#include "Display.h"
 
 #include <exception>
 
-#include "Application.hpp"
+#include "Application.h"
 
 Display::Display(const DisplayCreateInfo* info) :
 	m_hWnd(nullptr),

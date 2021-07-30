@@ -7,10 +7,6 @@ Paul Konstantin Christof
 Vytautas Hermann  
 Frank Kevin Zey
 
-# TODOs
-- [ ] Implement keys `4`, `5`, `6` according to table below.
-- [ ] Rename all Headers to match `*.h` instead of `*.hpp`
-- [ ] Test everything over again to ensure requirements stated as follows
 ```
 - 50% Implementierung des Image Renderers incl. laden der Modelldatei. (✓)
 - 20% Laden des Levels und der Modelle. Rendern der kompletten Szene. Navigation mit Maus und Tastatur. Anzeigen Splash - Screens beim Laden. Lauffähiges Spiel. README. Kommentierter Code.
@@ -34,7 +30,7 @@ Therefor a smooth running along the walls isn't given.
 When colliding with the *barrier* object and looking down/up, the player can move
 towards its center because the rotation of the camera is translated onto the OBB
 Volume.  
-When lokking down/up slows down movement speed.
+When looking down/up slows down movement speed.
 
 ## Controls
 | Key      | Effect       |
@@ -77,8 +73,8 @@ testing can be performed with the function:
 ```c++
 static bool BoundingVolume::SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept;
 ```
-The function needs a `vector` of `BoundingVolume` pointer to test against the camera. The concrete
-`BoundingVolume` can be chosen by the keys `4`, `5`, `6`.
+The function needs a `std::vector` of `BoundingVolume` pointer to test against the camera. The concrete
+`BoundingVolume` can be chosen by the keys `4`, `5`, `6` which will be used for the cameras `BoundingVolume`.
 
 The `Camera` class needs to have a function similar like this:
 ```c++
@@ -114,6 +110,17 @@ static inline bool SweepNPrune(const std::vector<BoundingVolume*>& models) noexc
 tests every given `BoundingVolume` only against the camera for the reason explained above.
 
 ## Frustum Culling
+The `Frustum Culling` Algorthm can be called using the following function
+```c++
+static void FrustumCull(const std::vector<Model*>& models, std::vector<Model*>&) noexcept;
+```
+Note that the `Camera` class needs a function like this
+```c++
+static inline BoundingVolume& Frustum(void) noexcept { return m_Frustum; }
+```
+`m_Frustum` is a `BoundingVolume` used containing the `Sphere`, `AABB` and `OBB` around the frustum
+points.
+
 ```
 Windows 10 Version 10.0.19043 Build 19043
 AMD Ryzen 5 2600X Six-Core Processor, 3600 Mhz
@@ -149,7 +156,6 @@ default frustum culling test instance.
 During runtime the frustum culling test instances can be switch as shown on the table
 above.
 
-
 ```
 Windows 10 Version 10.0.19041.1110
 Intel Core i5-6600K CPU @ 3.5GHz
@@ -163,30 +169,36 @@ Near- / Far-Planes:  0.01 / 15.0
 
 | **Test Type**         | **FPS** | **Time**            | **Rendered** |
 |-----------------------|---------|---------------------|--------------|
-| `BoundingBox` (AABB)  | 144    | **0.08 - 0.09ms**   | 85 of 122    |
-| `BoundingSphere`      | 144    | **0.08 - 0.09ms**   | 67 of 122    |
-| `BoundingOrientedBox` | 144    | **0.57ms - 0.58ms** | 45 of 122    |
+| `BoundingBox` (AABB)  | 144     | **0.08ms - 0.09ms** | 85 of 122    |
+| `BoundingSphere`      | 144     | **0.08ms - 0.09ms** | 67 of 122    |
+| `BoundingOrientedBox` | 144     | **0.57ms - 0.58ms** | 45 of 122    |
 
-This in another test on another computer and from a different angle.
-The frames per seceond seem to be limeted by the monitors refrsh rate in this test.
-Notice that in this test BoundingSphere culls more precice that BoundingBox.
-This is most likely due to the chosen angle for this test, since BoundingBox
-culls more precide from most other angles.
+This in another test on another computer and from a different angle. The frames per seceond seem to
+be limeted by the monitors refrsh rate in this test. Notice that in this test `BoundingSphere` culls
+more precice that `BoundingBox`. This is most likely due to the chosen angle for this test, since
+`BoundingBox` culls more precide from most other angles.
 
-![alt text](https://github.com/Antideuteron/DirectX_GameEngine/blob/main/TestAngle.PNG "Test angle 1")
+![alt text](TestAngle.PNG)
 
 From another angle the results are:
 
 | **Test Type**         | **FPS** | **Time**            | **Rendered** |
 |-----------------------|---------|---------------------|--------------|
-| `BoundingBox` (AABB)  | 144     | **0.08 - 0.09ms**   | 91 of 122    |
-| `BoundingSphere`      | 144     | **0.09 - 0.10ms**   | 111 of 122   |
+| `BoundingBox` (AABB)  | 144     | **0.08ms - 0.09ms** | 91 of 122    |
+| `BoundingSphere`      | 144     | **0.09ms - 0.10ms** | 111 of 122   |
 | `BoundingOrientedBox` | 144     | **0.56ms - 0.58ms** | 33 of 122    |
 
-In this test, the better clling precision from BoudningBox compared to BoudingSphere was even measurable
-in the time it takes to cull.
-It is also a good example on how much more precise culling can be performed with
-BoundingOrientedBox. However the time it takes to do culling with
-BoundingOrientedBox doesnt make it the best option for this application.
+In this test, the better clling precision from BoudningBox compared to BoudingSphere was even
+measurable in the time it takes to cull. It is also a good example on how much more precise culling
+can be performed with `BoundingOrientedBox`. However the time it takes to do culling with
+`BoundingOrientedBox` doesn't make it the best option for this application.
 
-![alt text](https://github.com/Antideuteron/DirectX_GameEngine/blob/main/TestAngle2.PNG "Test angle 2")
+![alt text](TestAngle2.PNG)
+
+## `Broad Phase`
+The `Broad Phase` checks for potential collisions of objects. In this phase, `AABB`s are used against the cameras
+`BoundingVolume`.
+
+## `Narrow Phase`
+The `Narrow Phase` checks for actual collision provided by the list of potential colliding `BoundingVolume`s. In this
+phase, `OBB`s are used against the cameras `BoundingVolume`.

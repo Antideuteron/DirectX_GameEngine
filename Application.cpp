@@ -1,8 +1,8 @@
-#include "Application.hpp"
+#include "Application.h"
 
-#include "Mouse.hpp"
-#include "Keyboard.hpp"
-#include "Display.hpp"
+#include "Mouse.h"
+#include "Display.h"
+#include "Keyboard.h"
 
 static float timeElapsed = 0.0f;
 static uint32_t frameCounter = 0;

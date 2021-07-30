@@ -1,11 +1,11 @@
-#include "Camera.hpp"
+#include "Camera.h"
 
-#include "Mouse.hpp"
-#include "Display.hpp"
-#include "Keyboard.hpp"
+#include "Mouse.h"
+#include "Display.h"
+#include "Keyboard.h"
 
 static constexpr float fov = XMConvertToRadians(75.0f);
-static constexpr float farDistance = 15.0f;
+static constexpr float farDistance = 25.0f;
 static constexpr float nearDistance = 0.01f;
 
 XMFLOAT3 Camera::m_Position = { 0.0f, 1.5f, -10.0f };
@@ -30,8 +30,8 @@ bool Camera::Init(const uint32_t width, const uint32_t height) noexcept
 
 	m_Body = BoundingVolume(
 		std::vector<Vertex> {
-			{ { -0.25f, -1.5f, -0.25f }, {}, {} },
-			{ {  0.25f,  0.2f,  0.25f }, {}, {} }
+			{ { -0.25f, -1.0f, -0.25f }, {}, {} },
+			{ {  0.25f,  0.7f,  0.25f }, {}, {} }
 		}
 	);
 

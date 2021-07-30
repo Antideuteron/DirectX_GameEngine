@@ -1,6 +1,6 @@
 #include "LevelRenderer.h"
 
-#include "Camera.hpp"
+#include "Camera.h"
 #include "LevelLoader.h"
 
 bool LevelRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width, int height)
@@ -154,8 +154,12 @@ void LevelRenderer::Update(int frameIndex)
   if (BoundingVolume::SweepNPrune(solids))
   {
     Log::Info(L"Sweep&Prune Narrow Phase COLLISION");
+
     Camera::m_Position.x -= Camera::Translation().x;
     Camera::m_Position.z -= Camera::Translation().z;
+
+    Camera::m_Body.Update(&Camera::m_Position, &Camera::m_Rotation);
+    Camera::m_Frustum.Update(&Camera::m_Position, &Camera::m_Rotation);
   }
 }
 

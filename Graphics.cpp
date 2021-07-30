@@ -1,8 +1,8 @@
 #include "Graphics.h"
 
-#include "Mouse.hpp"
-#include "Camera.hpp"
-#include "Keyboard.hpp"
+#include "Mouse.h"
+#include "Camera.h"
+#include "Keyboard.h"
 
 #include "DeviceManager.h"
 #include "LevelRenderer.h"

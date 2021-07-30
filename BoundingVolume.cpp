@@ -1,14 +1,14 @@
 #include "BoundingVolume.h"
 
 #include "Model.h"
-#include "Camera.hpp"
-#include "Keyboard.hpp"
+#include "Camera.h"
+#include "Keyboard.h"
 
 constexpr const float max_float = std::numeric_limits<float>::max();
 constexpr const float min_float = std::numeric_limits<float>::min();
 
 static BoundingVolumeTestType s_Type = BoundingVolumeTestType::AABB;
-BoundingVolumeTestType BoundingVolume::TestType = BoundingVolumeTestType::AABB;
+BoundingVolumeTestType BoundingVolume::TestType = BoundingVolumeTestType::Sphere;
 
 BoundingVolume::BoundingVolume(std::vector<Vertex>& vertices) noexcept
 {
@@ -48,11 +48,15 @@ void BoundingVolume::Update(XMFLOAT3* position, XMFLOAT4* rotation) noexcept
 
 bool BoundingVolume::SimpleCollisionCheck(const std::vector<BoundingVolume*>& models) noexcept
 {
+	CollisionTestTypeUpdate();
+
 	auto* player = &Camera::Body();
 
   XMFLOAT3 resolution;
 
 	for (const auto& model : models) return model->Intersects(player, resolution);
+
+	return false;
 }
 
 bool BoundingVolume::insectCheck(const BoundingOrientedBox& other, XMFLOAT3& resolution) const noexcept
@@ -397,6 +401,17 @@ bool BoundingVolume::insectCheck(const BoundingSphere& other, XMFLOAT3& resoluti
 
 	// no intersection
 	return false;
+}
+
+void BoundingVolume::CollisionTestTypeUpdate(void) noexcept
+{
+	BoundingVolumeTestType type = TestType;
+
+	if (Keyboard::IsPressed(sc_4))      type = BoundingVolumeTestType::Sphere;
+	else if (Keyboard::IsPressed(sc_5)) type = BoundingVolumeTestType::AABB;
+	else if (Keyboard::IsPressed(sc_6)) type = BoundingVolumeTestType::OBB;
+
+	TestType = type;
 }
 
 BoundingVolumeTestType BoundingVolume::CullingUpdate(void) noexcept

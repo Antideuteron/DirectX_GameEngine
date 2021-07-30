@@ -24,13 +24,13 @@
     <ClInclude Include="Log.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Keyboard.hpp">
+    <ClInclude Include="Keyboard.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Display.hpp">
+    <ClInclude Include="Display.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Application.hpp">
+    <ClInclude Include="Application.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Graphics.h">
@@ -60,10 +60,10 @@
     <ClInclude Include="TextureLoader.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.hpp">
+    <ClInclude Include="Camera.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Mouse.hpp">
+    <ClInclude Include="Mouse.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="ObjLoader.h">

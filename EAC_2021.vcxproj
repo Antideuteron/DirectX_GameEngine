@@ -177,20 +177,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BoundingVolume.h" />
-    <ClInclude Include="Camera.hpp" />
-    <ClInclude Include="Keyboard.hpp" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Keyboard.h" />
     <ClInclude Include="LevelLoader.h" />
     <ClInclude Include="LevelRenderer.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
-    <ClInclude Include="Mouse.hpp" />
+    <ClInclude Include="Mouse.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="Log.h" />
-    <ClInclude Include="Application.hpp" />
+    <ClInclude Include="Application.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DepthQuadRenderer.h" />
     <ClInclude Include="DeviceManager.h" />
-    <ClInclude Include="Display.hpp" />
+    <ClInclude Include="Display.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ImageRenderer.h" />
     <ClInclude Include="ObjLoader2.h" />

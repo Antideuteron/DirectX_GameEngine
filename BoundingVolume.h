@@ -42,12 +42,12 @@ public:
 
 	static std::vector<BoundingVolume*> broad(const std::vector<BoundingVolume*>& models) noexcept;
 	static bool narrow(const std::vector<BoundingVolume*>& models) noexcept;
-	static inline bool SweepNPrune(const std::vector<BoundingVolume*>& models) noexcept { return narrow(broad(models)); }
+	static inline bool SweepNPrune(const std::vector<BoundingVolume*>& models) noexcept { CollisionTestTypeUpdate(); return narrow(broad(models)); }
+
+	static void CollisionTestTypeUpdate(void) noexcept;
 
 private:
 	static BoundingVolumeTestType CullingUpdate(void) noexcept;
-
-
 	static BoundingVolumeTestType TestType;
 
 	friend class Model;

@@ -1,4 +1,4 @@
-#include "Mouse.hpp"
+#include "Mouse.h"
 
 std::pair<int32_t, int32_t> Mouse::s_LastCursorMovement = { 0, 0 };
 

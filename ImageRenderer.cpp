@@ -1,6 +1,6 @@
 #include "ImageRenderer.h"
 
-#include "Camera.hpp"
+#include "Camera.h"
 #include "ObjLoader.h"
 
 bool ImageRenderer::CreatePipelineState(ComPtr<ID3D12Device>& device, int width, int height)

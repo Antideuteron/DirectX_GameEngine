@@ -1,6 +1,6 @@
 #include "Model.h"
 
-#include "Camera.hpp"
+#include "Camera.h"
 
 Model::Model(const std::string& object, const std::string& texture, XMFLOAT3 position, XMFLOAT4 rotation, const bool solid) :
   m_position(position),

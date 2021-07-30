@@ -25,18 +25,17 @@ public:
   static inline XMFLOAT3& Translation(void) noexcept { return m_Translation; }
 
   static XMFLOAT3 m_Position;
+  static XMFLOAT4 m_Rotation;
+  static BoundingVolume m_Body;
+  static BoundingVolume m_Frustum;
 
 private:
   Camera(void) noexcept = delete;
   ~Camera(void) noexcept = delete;
 
-  static XMFLOAT4 m_Rotation;
   static XMFLOAT3 m_Translation;
 
   static float speed;
   static float m_YAW, m_PITCH;
-
-  static BoundingVolume m_Body;
-  static BoundingVolume m_Frustum;
   
 };
