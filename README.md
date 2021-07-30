@@ -173,7 +173,7 @@ Notice that in this test BoundingSphere culls more precice that BoundingBox.
 This is most likely due to the chosen angle for this test, since BoundingBox
 culls more precide from most other angles.
 
-![alt text](TestAngle.png "Test angle 1")
+![alt text](https://github.com/Antideuteron/DirectX_GameEngine/blob/main/TestAngle.PNG "Test angle 1")
 
 From another angle the results are:
 
@@ -189,4 +189,4 @@ It is also a good example on how much more precise culling can be performed with
 BoundingOrientedBox. However the time it takes to do culling with
 BoundingOrientedBox doesnt make it the best option for this application.
 
-![alt text](TestAngle2.png "Test angle 1")
+![alt text](https://github.com/Antideuteron/DirectX_GameEngine/blob/main/TestAngle2.PNG "Test angle 2")
