@@ -31,7 +31,7 @@ Spieler das Gefühl hat nicht durch Wände laufen zu können.
 Therefor a smooth running along the walls isn't given.
 
 ## Known *Bugs*
-When colliding with the *barrier* object and lokking down/up, the player can move
+When colliding with the *barrier* object and looking down/up, the player can move
 towards its center because the rotation of the camera is translated onto the OBB
 Volume.  
 When lokking down/up slows down movement speed.
@@ -90,7 +90,7 @@ static inline BoundingVolume& Body(void) noexcept { return m_Body; }
 To integrate the `BoundingVolume` class the `BoundingVolume.h` and `BoundingVolume.cpp` have to be included to the
 project. The `BoundingVolume`s `Update` function needs to be called inside the `Model::Update` function after updating
 the model itself.  
-`Broad Phase` and `Narrow Phase` can calls separatly by calling either
+`Broad Phase` and `Narrow Phase` can be called separatly by calling either
 ```c++
 static std::vector<BoundingVolume*> broad(const std::vector<BoundingVolume*>& models) noexcept;
 ```
@@ -131,7 +131,7 @@ Near- / Far-Planes:  0.01 / 15.0
 | `BoundingSphere`      | ~329    | **0.09ms** | 98 of 122    |
 | `BoundingOrientedBox` | ~282    | **0.77ms** | 56 of 122    |
 
-The above Tests were made during the same running instance and from identical
+The above tests were made during the same running instance and from identical
 position and orientation. Even the `BoundingSphere` has the best resolution time
 its culling is rough at best. The `BoundingBox` has comparable performance to the
 `BoundingSphere` but culls much more precise. By no suprise was the culling precision
@@ -148,3 +148,45 @@ default frustum culling test instance.
 
 During runtime the frustum culling test instances can be switch as shown on the table
 above.
+
+
+```
+Windows 10 Version 10.0.19041.1110
+Intel Core i5-6600K CPU @ 3.5GHz
+16Gb RAM
+NVIDIA GeForce GTX 970 4GB
+
+VSync                off
+Field of View:       75°
+Near- / Far-Planes:  0.01 / 15.0
+```
+
+| **Test Type**         | **FPS** | **Time**            | **Rendered** |
+|-----------------------|---------|---------------------|--------------|
+| `BoundingBox` (AABB)  | 144    | **0.08 - 0.09ms**   | 85 of 122    |
+| `BoundingSphere`      | 144    | **0.08 - 0.09ms**   | 67 of 122    |
+| `BoundingOrientedBox` | 144    | **0.57ms - 0.58ms** | 45 of 122    |
+
+This in another test on another computer and from a different angle.
+The frames per seceond seem to be limeted by the monitors refrsh rate in this test.
+Notice that in this test BoundingSphere culls more precice that BoundingBox.
+This is most likely due to the chosen angle for this test, since BoundingBox
+culls more precide from most other angles.
+
+![alt text](TestAngle.png "Test angle 1")
+
+From another angle the results are:
+
+| **Test Type**         | **FPS** | **Time**            | **Rendered** |
+|-----------------------|---------|---------------------|--------------|
+| `BoundingBox` (AABB)  | 144     | **0.08 - 0.09ms**   | 91 of 122    |
+| `BoundingSphere`      | 144     | **0.09 - 0.10ms**   | 111 of 122   |
+| `BoundingOrientedBox` | 144     | **0.56ms - 0.58ms** | 33 of 122    |
+
+In this test, the better clling precision from BoudningBox compared to BoudingSphere was even measurable
+in the time it takes to cull.
+It is also a good example on how much more precise culling can be performed with
+BoundingOrientedBox. However the time it takes to do culling with
+BoundingOrientedBox doesnt make it the best option for this application.
+
+![alt text](TestAngle2.png "Test angle 1")
